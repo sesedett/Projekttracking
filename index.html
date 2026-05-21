@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projekt-Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f0efeb;--surface:#fff;--surface2:#f7f6f2;--border:#e2e0d8;
+    --text:#1a1917;--text-muted:#6b6860;--accent:#1a3a5c;--accent2:#2d5f8a;
+    --green:#2a7a4b;--green-bg:#e8f5ee;--yellow:#b87d00;--yellow-bg:#fdf3dc;
+    --red:#c0392b;--red-bg:#fdecea;
+    --shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 32px rgba(0,0,0,.1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  /* LOADING / ERROR SCREENS */
+  #app-loading{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:9999;}
+  #app-loading h2{font-family:'DM Serif Display',serif;color:white;font-size:1.6rem;}
+  #app-loading p{color:rgba(255,255,255,.75);font-size:.9rem;}
+  .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #app-error{display:none;max-width:580px;margin:3rem auto;background:white;border-radius:12px;padding:2rem;box-shadow:var(--shadow-lg);}
+  #app-error h3{color:var(--red);margin-bottom:.75rem;font-size:1.1rem;}
+  #app-error p{font-size:.88rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem;}
+  #app-error code{background:var(--surface2);padding:.2rem .5rem;border-radius:4px;font-size:.82rem;}
+  #app-error ol{padding-left:1.3rem;font-size:.87rem;line-height:1.8;color:var(--text-muted);}
+
+  /* SETUP SCREEN */
+  #app-setup{display:none;max-width:600px;margin:3rem auto;}
+  .setup-card{background:white;border-radius:12px;padding:2rem;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
+  .setup-card h2{font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:.5rem;color:var(--accent);}
+  .setup-card p{font-size:.87rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;}
+  .setup-field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem;}
+  .setup-field label{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);}
+  .warn-box{background:var(--yellow-bg);border:1px solid #f0c84a;border-radius:8px;padding:.9rem 1.1rem;font-size:.84rem;color:#7a5200;line-height:1.5;margin-bottom:1.2rem;}
+
+  /* MAIN APP */
+  #app-main{display:none;}
+  header{background:var(--accent);color:white;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+  header h1{font-family:'DM Serif Display',serif;font-size:1.25rem;}
+  .sync-pill{background:rgba(255,255,255,.13);padding:.3rem .75rem;border-radius:20px;font-size:.76rem;display:flex;align-items:center;gap:.4rem;}
+  .sdot{width:8px;height:8px;border-radius:50%;background:#aaa;flex-shrink:0;transition:background .3s;}
+  .sdot.ok{background:#4ade80;} .sdot.busy{background:#fbbf24;animation:pulse 1s infinite;} .sdot.err{background:#f87171;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .hbtns{display:flex;gap:.6rem;}
+  .btn{padding:.42rem 1rem;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;transition:all .15s;}
+  .btn-pri{background:white;color:var(--accent);} .btn-pri:hover{background:#e8f0f8;}
+  .btn-ghost{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);} .btn-ghost:hover{background:rgba(255,255,255,.25);}
+  .btn-acc{background:var(--accent);color:white;} .btn-acc:hover{background:var(--accent2);}
+  .btn-danger{background:var(--red);color:white;} .btn-danger:hover{background:#a93226;}
+
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;overflow-x:auto;}
+  .tab{padding:.9rem 1.4rem;cursor:pointer;font-size:.88rem;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+  .tab:hover{color:var(--accent);} .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  main{max-width:1400px;margin:0 auto;padding:2rem;}
+
+  .ampel{display:inline-flex;align-items:center;gap:.4rem;padding:.28rem .65rem;border-radius:20px;font-size:.78rem;font-weight:600;}
+  .adot{width:8px;height:8px;border-radius:50%;}
+  .ampel.gruen{background:var(--green-bg);color:var(--green);} .ampel.gruen .adot{background:var(--green);}
+  .ampel.gelb{background:var(--yellow-bg);color:var(--yellow);} .ampel.gelb .adot{background:#f0a800;}
+  .ampel.rot{background:var(--red-bg);color:var(--red);} .ampel.rot .adot{background:var(--red);}
+
+  .pbar{background:var(--border);border-radius:4px;height:7px;overflow:hidden;}
+  .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+  .scard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;box-shadow:var(--shadow);}
+  .slabel{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.35rem;}
+  .sval{font-family:'DM Serif Display',serif;font-size:2rem;}
+  .sval.blue{color:var(--accent);} .sval.green{color:var(--green);} .sval.yellow{color:var(--yellow);} .sval.red{color:var(--red);}
+
+  /* TABLE */
+  .twrap{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;}
+  th{background:var(--surface2);padding:.8rem 1rem;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border);}
+  td{padding:.85rem 1rem;font-size:.88rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;} tr:hover td{background:#f8f7f3;}
+  .pname{font-weight:600;color:var(--accent);}
+  .mstext{font-size:.8rem;color:var(--text-muted);max-width:230px;line-height:1.4;}
+  .notetext{font-size:.8rem;color:var(--text-muted);max-width:200px;font-style:italic;}
+  .abtns{display:flex;gap:.4rem;}
+  .bsm{padding:.28rem .65rem;font-size:.76rem;border-radius:5px;border:1px solid var(--border);background:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .12s;color:var(--text-muted);}
+  .bsm:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent);}
+  .bsm.del:hover{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+
+  /* CARDS */
+  .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem;}
+  .pcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .15s;}
+  .pcard:hover{box-shadow:var(--shadow-lg);}
+  .cardh{padding:1rem 1.2rem .85rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;}
+  .ctitle{font-family:'DM Serif Display',serif;font-size:1rem;line-height:1.3;color:var(--accent);}
+  .cardb{padding:.9rem 1.2rem;}
+  .igrid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .9rem;margin-bottom:.8rem;}
+  .ikey{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:.12rem;}
+  .ival{font-size:.85rem;font-weight:500;}
+  .slbl{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin-bottom:.35rem;}
+  .prow{display:flex;align-items:center;gap:.7rem;margin:.4rem 0 .8rem;}
+  .ppct{font-weight:700;font-size:.88rem;color:var(--accent);min-width:34px;}
+  .mslist{list-style:none;}
+  .mslist li{font-size:.8rem;padding:.4rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:.5rem;}
+  .mslist li:last-child{border-bottom:none;}
+  .msn{flex:1;} .msd{color:var(--text-muted);font-size:.76rem;white-space:nowrap;}
+  .mss{font-size:.7rem;font-weight:600;}
+  .mss.done{color:var(--green);} .mss.progress{color:var(--yellow);} .mss.open{color:var(--text-muted);}
+  .rtag{display:inline-block;background:var(--red-bg);color:var(--red);font-size:.73rem;padding:.18rem .45rem;border-radius:4px;margin:.18rem .18rem .18rem 0;line-height:1.4;}
+  .cardf{padding:.7rem 1.2rem;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:.5rem;justify-content:flex-end;}
+
+  /* FORM */
+  .fwrap{max-width:800px;margin:0 auto;}
+  .fcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:1.6rem;margin-bottom:1.2rem;}
+  .fcard h3{font-size:.77rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:1rem;padding-bottom:.55rem;border-bottom:2px solid var(--border);}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.85rem;}
+  .frow.s1{grid-template-columns:1fr;}
+  .fg{display:flex;flex-direction:column;gap:.32rem;}
+  .fg label{font-size:.78rem;font-weight:600;color:var(--text-muted);}
+  input[type=text],input[type=number],textarea,select{padding:.52rem .75rem;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:white;color:var(--text);transition:border-color .15s,box-shadow .15s;width:100%;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,58,92,.1);}
+  textarea{resize:vertical;min-height:76px;}
+  .asel{display:flex;gap:.5rem;}
+  .aopt{flex:1;padding:.52rem;text-align:center;border:2px solid var(--border);border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .15s;}
+  .aopt:hover{border-color:#aaa;}
+  .aopt.sg{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+  .aopt.sy{border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow);}
+  .aopt.sr{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+  .msed{display:flex;flex-direction:column;gap:.55rem;}
+  .msr{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr auto;gap:.45rem;align-items:center;}
+  .brm{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.1rem;padding:0 .3rem;line-height:1;transition:color .1s;}
+  .brm:hover{color:var(--red);}
+  .bams{background:var(--surface2);border:1px dashed var(--border);color:var(--accent);padding:.48rem 1rem;border-radius:7px;cursor:pointer;font-size:.83rem;font-weight:500;width:100%;text-align:center;font-family:'DM Sans',sans-serif;transition:background .12s;margin-top:.3rem;}
+  .bams:hover{background:#e8f0f8;}
+  .facts{display:flex;gap:.7rem;justify-content:flex-end;margin-top:.5rem;}
+
+  /* MODAL */
+  .moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;}
+  .moverlay.open{display:flex;}
+  .modal{background:white;border-radius:12px;padding:1.6rem;max-width:400px;width:90%;box-shadow:var(--shadow-lg);}
+  .modal h3{font-size:1.05rem;margin-bottom:.55rem;}
+  .modal p{font-size:.87rem;color:var(--text-muted);margin-bottom:1.2rem;}
+  .macts{display:flex;gap:.65rem;justify-content:flex-end;}
+
+  #toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--accent);color:white;padding:.75rem 1.3rem;border-radius:8px;font-size:.88rem;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transform:translateY(8px);transition:all .22s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;transform:translateY(0);}
+
+  @media(max-width:700px){
+    .frow,.stats{grid-template-columns:1fr 1fr;}
+    .frow.s1{grid-template-columns:1fr;}
+    .msr{grid-template-columns:1fr 1fr;}
+    .cgrid{grid-template-columns:1fr;}
+    main{padding:1rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="app-loading">
+  <div class="spinner" id="spinner"></div>
+  <h2>Projekt-Dashboard</h2>
+  <p id="loading-msg">Verbinde mit Microsoft 365...</p>
+  <button id="btn-manual-login" onclick="manualLogin()" style="display:none;margin-top:1.5rem;padding:.7rem 1.8rem;border-radius:8px;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.15);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s">
+    🔐 Mit Microsoft anmelden
+  </button>
+  <p id="login-hint" style="display:none;margin-top:.75rem;font-size:.8rem;opacity:.6;max-width:320px;text-align:center">
+    Falls ein Popup-Blocker aktiv ist, erlaube Popups für diese Seite und klicke erneut.
+  </p>
+</div>
+
+<!-- ERROR -->
+<div id="app-error">
+  <h3>⚠ Verbindungsfehler</h3>
+  <p id="error-msg"></p>
+  <p>Mögliche Ursachen:</p>
+  <ol>
+    <li>Die <strong>Client-ID</strong> im Code stimmt nicht (siehe Zeile <code>CLIENT_ID</code> im Script)</li>
+    <li>Die Azure App hat keine Berechtigung <code>Files.ReadWrite</code></li>
+    <li>Der OneDrive-Ordnerpfad existiert nicht</li>
+    <li>Die Weiterleitungs-URI in Azure stimmt nicht mit dieser URL überein</li>
+  </ol>
+  <br>
+  <button class="btn btn-acc" onclick="location.reload()">Neu laden</button>
+</div>
+
+<!-- SETUP (first-time config) -->
+<div id="app-setup">
+  <div class="setup-card">
+    <h2>Einrichtung erforderlich</h2>
+    <p>Trage einmalig deine Azure App-Registrierung ein. Diese Werte werden direkt im HTML gespeichert – du musst das nur einmal tun.</p>
+    <div class="warn-box">
+      ⚠ Du brauchst eine <strong>Azure App-Registrierung</strong>. Die Schritt-für-Schritt-Anleitung steht weiter unten auf dieser Seite (oder öffne die HTML-Datei in einem Editor).
+    </div>
+    <div class="setup-field">
+      <label>Azure Client-ID *</label>
+      <input type="text" id="setup-clientid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+    </div>
+    <div class="setup-field">
+      <label>OneDrive-Ordnerpfad (Ordner muss existieren)</label>
+      <input type="text" id="setup-folder" placeholder="z.B. Projekte/Dashboard">
+    </div>
+    <div style="margin-top:1.2rem;display:flex;gap:.75rem">
+      <button class="btn btn-acc" onclick="applySetup()">Speichern & verbinden</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-main">
+  <header>
+    <h1>📊 Projekt-Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:.9rem">
+      <div class="sync-pill">
+        <div class="sdot" id="sdot"></div>
+        <span id="slabel">Verbinde...</span>
+      </div>
+      <div class="hbtns">
+        <button class="btn btn-ghost" onclick="forceSave()">↻ Speichern</button>
+        <button class="btn btn-pri" onclick="showTab('form');newProject()">+ Neues Projekt</button>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="tab active" data-tab="overview" onclick="showTab('overview')">Gesamtübersicht</div>
+    <div class="tab" data-tab="steckbrief" onclick="showTab('steckbrief')">Steckbriefe</div>
+    <div class="tab" data-tab="form" onclick="showTab('form')">Erfassung</div>
+  </nav>
+
+  <main>
+    <div id="view-overview">
+      <div class="stats" id="stats"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Alle Projekte</h2>
+      </div>
+      <div class="twrap"><table>
+        <thead><tr>
+          <th>Projektname</th><th>Status</th><th>Fortschritt</th>
+          <th>Akt. Meilenstein</th><th>Projektleiter</th><th>Anmerkungen</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table></div>
+    </div>
+
+    <div id="view-steckbrief" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Projektsteckbriefe</h2>
+      </div>
+      <div class="cgrid" id="cgrid"></div>
+    </div>
+
+    <div id="view-form" style="display:none">
+      <div class="fwrap">
+        <h2 id="ftitle" style="font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:1.25rem">Neues Projekt</h2>
+        <input type="hidden" id="eid">
+        <div class="fcard">
+          <h3>Projektinformationen</h3>
+          <div class="frow"><div class="fg"><label>Projektname *</label><input type="text" id="f-name"></div><div class="fg"><label>Projektleiter</label><input type="text" id="f-leiter"></div></div>
+          <div class="frow"><div class="fg"><label>Sponsor</label><input type="text" id="f-sponsor"></div><div class="fg"><label>Projektteam</label><input type="text" id="f-team" placeholder="z.B. BT, VR, SD"></div></div>
+          <div class="frow s1"><div class="fg"><label>Beschreibung & Ziele</label><textarea id="f-beschreibung"></textarea></div></div>
+          <div class="frow s1"><div class="fg"><label>Erfolgsmessung</label><textarea id="f-erfolgsmessung" style="min-height:58px"></textarea></div></div>
+        </div>
+        <div class="fcard">
+          <h3>Status & Budget</h3>
+          <div class="frow">
+            <div class="fg"><label>Projektstatus</label>
+              <select id="f-status"><option>In Vorbereitung</option><option>In Bearbeitung</option><option>Abgeschlossen</option><option>On Hold</option></select>
+            </div>
+            <div class="fg"><label>Gesamtfortschritt (%)</label><input type="number" id="f-fortschritt" min="0" max="100" value="0"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label>Budget (Geplant)</label><input type="text" id="f-bplan" placeholder="z.B. intern / >100K"></div>
+            <div class="fg"><label>Budget (IST)</label><input type="text" id="f-bist"></div>
+          </div>
+          <div class="fg" style="margin-top:.5rem"><label>Ampelstatus</label>
+            <div class="asel">
+              <div class="aopt" data-v="gruen" onclick="pickAmpel('gruen')">🟢 Grün</div>
+              <div class="aopt" data-v="gelb" onclick="pickAmpel('gelb')">🟡 Gelb</div>
+              <div class="aopt" data-v="rot" onclick="pickAmpel('rot')">🔴 Rot</div>
+            </div>
+          </div>
+        </div>
+        <div class="fcard">
+          <h3>Meilensteine</h3>
+          <div class="msed" id="msed"></div>
+          <button class="bams" onclick="addMs()">+ Meilenstein hinzufügen</button>
+        </div>
+        <div class="fcard">
+          <h3>Risiken & Offene Fragen</h3>
+          <div class="frow s1"><div class="fg"><label>Potenzielle Risiken (ein Risiko pro Zeile)</label><textarea id="f-risiken"></textarea></div></div>
+          <div class="frow s1"><div class="fg"><label>Offene Fragen & Entscheidungen</label><textarea id="f-fragen" style="min-height:58px"></textarea></div></div>
+          <div class="frow s1"><div class="fg"><label>Anmerkungen (für Gesamtübersicht)</label><textarea id="f-anmerkungen" style="min-height:58px"></textarea></div></div>
+        </div>
+        <div class="facts">
+          <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)" onclick="showTab('overview')">Abbrechen</button>
+          <button class="btn btn-acc" onclick="saveProject()">💾 Speichern</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+<div class="moverlay" id="del-modal">
+  <div class="modal">
+    <h3>Projekt löschen?</h3>
+    <p>Diese Aktion kann nicht rückgängig gemacht werden.</p>
+    <div class="macts">
+      <button class="btn" style="background:var(--surface2);border:1px solid var(--border)" onclick="closeDelModal()">Abbrechen</button>
+      <button class="btn btn-danger" id="del-confirm">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  KONFIGURATION – hier anpassen                          ║
+// ╚══════════════════════════════════════════════════════════╝
+const CLIENT_ID        = 'e1158756-cb4e-4599-83e0-b6b3e9b18793';
+const FILE_NAME        = 'projekt-dashboard.json';
+
+// Speicherort – eine der beiden Optionen auskommentieren:
+// OPTION A: Persönliches OneDrive
+// const STORAGE_MODE   = 'onedrive';
+// const ONEDRIVE_FOLDER = 'Projekte';
+
+// OPTION B: SharePoint-Teamkanal (aktuell aktiv)
+const STORAGE_MODE     = 'sharepoint';
+const SP_SITE_NAME     = 'BusinessApplikationen';  // Site-Name aus URL
+const SP_FOLDER        = 'Shared Documents/Projekte';  // Pfad in der Site
+// ═══════════════════════════════════════════════════════════
+
+const SCOPES = ['Files.ReadWrite', 'Sites.Read.All', 'User.Read', 'offline_access'];
+let msalApp = null;
+let token   = null;
+let projects = [];
+let selAmpel = 'gruen';
+let delId    = null;
+
+// ── MSAL ────────────────────────────────────────────────────
+// ── Native OAuth2 PKCE ───────────────────────────────────────
+function getRedirectUri() {
+  // Use just the file path without query params
+  const url = new URL(window.location.href);
+  return url.origin + url.pathname;
+}
+
+async function sha256(plain) {
+  const enc = new TextEncoder().encode(plain);
+  const hash = await crypto.subtle.digest('SHA-256', enc);
+  return hash;
+}
+
+function base64urlencode(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function generateCodeVerifier() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return base64urlencode(arr);
+}
+
+async function generateCodeChallenge(verifier) {
+  const hash = await sha256(verifier);
+  return base64urlencode(hash);
+}
+
+async function initAuthSilent(clientId) {
+  // Check if we are returning from OAuth redirect (token in hash/sessionStorage)
+  const stored = sessionStorage.getItem('pd_token');
+  const expiry = sessionStorage.getItem('pd_token_exp');
+  if (stored && expiry && Date.now() < parseInt(expiry)) {
+    return stored;
+  }
+  // Check for auth code in URL
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+  const storedState = sessionStorage.getItem('pd_oauth_state');
+  const verifier = sessionStorage.getItem('pd_code_verifier');
+
+  if (code && state && state === storedState && verifier) {
+    // Exchange code for token
+    const tokenRes = await fetch(
+      'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: clientId,
+          code,
+          redirect_uri: getRedirectUri(),
+          grant_type: 'authorization_code',
+          code_verifier: verifier,
+          scope: SCOPES.join(' ')
+        })
+      }
+    );
+    const data = await tokenRes.json();
+    if (data.access_token) {
+      sessionStorage.setItem('pd_token', data.access_token);
+      sessionStorage.setItem('pd_token_exp', Date.now() + (data.expires_in - 60) * 1000);
+      sessionStorage.removeItem('pd_oauth_state');
+      sessionStorage.removeItem('pd_code_verifier');
+      // Clean URL
+      window.history.replaceState({}, '', getRedirectUri());
+      return data.access_token;
+    }
+    throw new Error(data.error_description || data.error || 'Token-Austausch fehlgeschlagen');
+  }
+  return null;
+}
+
+async function manualLogin() {
+  const clientId = CLIENT_ID || sessionStorage.getItem('pd_clientid');
+  document.getElementById('btn-manual-login').textContent = '⏳ Weiterleitung...';
+  document.getElementById('btn-manual-login').disabled = true;
+
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  const state = base64urlencode(crypto.getRandomValues(new Uint8Array(16)));
+
+  sessionStorage.setItem('pd_code_verifier', verifier);
+  sessionStorage.setItem('pd_oauth_state', state);
+  sessionStorage.setItem('pd_clientid_boot', clientId);
+
+  const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('redirect_uri', getRedirectUri());
+  authUrl.searchParams.set('scope', SCOPES.join(' '));
+  authUrl.searchParams.set('state', state);
+  authUrl.searchParams.set('code_challenge', challenge);
+  authUrl.searchParams.set('code_challenge_method', 'S256');
+  authUrl.searchParams.set('prompt', 'select_account');
+
+  window.location.href = authUrl.toString();
+}
+
+async function continueAfterLogin() {
+  setLoadMsg('Lade Projektdaten...');
+  document.getElementById('btn-manual-login').style.display = 'none';
+  document.getElementById('login-hint').style.display = 'none';
+  document.getElementById('spinner').style.display = '';
+  syncUI('busy', 'Lade...');
+  const remote = await odRead();
+  if (remote && Array.isArray(remote)) {
+    projects = remote;
+  } else {
+    projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+    await odWrite(projects);
+  }
+  syncUI('ok', 'Verbunden ✓');
+  document.getElementById('app-loading').style.display = 'none';
+  document.getElementById('app-main').style.display = 'block';
+  renderOverview();
+}
+
+// ── ONEDRIVE ────────────────────────────────────────────────
+function odBase() {
+  const f = ONEDRIVE_FOLDER.replace(/^\/|\/$/g, '');
+  return `https://graph.microsoft.com/v1.0/me/drive/root:/${f}/${FILE_NAME}`;
+}
+
+async function odRead() {
+  const base = await odBaseUrl();
+  const r = await fetch(base + ':/content', {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error('Graph ' + r.status + ' – ' + await r.text());
+  return r.json();
+}
+
+async function odWrite(data) {
+  const base = await odBaseUrl();
+  const r = await fetch(base + ':/content', {
+    method: 'PUT',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(data, null, 2)
+  });
+  if (!r.ok) throw new Error('Graph write ' + r.status);
+}
+
+// ── SYNC STATUS ─────────────────────────────────────────────
+function syncUI(state, label) {
+  const d = document.getElementById('sdot');
+  const l = document.getElementById('slabel');
+  if (d) d.className = 'sdot ' + (state === 'ok' ? 'ok' : state === 'busy' ? 'busy' : state === 'err' ? 'err' : '');
+  if (l) l.textContent = label;
+}
+
+async function forceSave() {
+  if (!token) { toast('Nicht verbunden'); return; }
+  syncUI('busy', 'Speichere...');
+  try { await odWrite(projects); syncUI('ok', 'Gespeichert ✓'); toast('In OneDrive gespeichert ✓'); }
+  catch(e) { syncUI('err', 'Fehler'); toast('Fehler: ' + e.message); }
+}
+
+async function autosave() {
+  if (!token) return;
+  syncUI('busy', 'Speichere...');
+  try { await odWrite(projects); syncUI('ok', 'Gespeichert ✓'); }
+  catch(e) { syncUI('err', 'Sync-Fehler'); }
+}
+
+// ── SETUP ───────────────────────────────────────────────────
+function applySetup() {
+  const cid = document.getElementById('setup-clientid').value.trim();
+  const folder = document.getElementById('setup-folder').value.trim();
+  if (!cid) { alert('Bitte Client-ID eintragen'); return; }
+  // Store in sessionStorage for this session
+  sessionStorage.setItem('pd_clientid', cid);
+  if (folder) sessionStorage.setItem('pd_folder', folder);
+  location.reload();
+}
+
+// ── BOOT ────────────────────────────────────────────────────
+async function boot() {
+  // Resolve client ID: hardcoded > sessionStorage > prompt setup
+  let clientId = CLIENT_ID ||
+    sessionStorage.getItem('pd_clientid_boot') ||
+    sessionStorage.getItem('pd_clientid') || '';
+
+  const folderOverride = sessionStorage.getItem('pd_folder');
+  if (folderOverride) {
+    // patch ONEDRIVE_FOLDER dynamically (not const in strict mode)
+    window._odFolder = folderOverride;
+  }
+
+  setLoadMsg('Lade Microsoft-Login...');
+
+  if (!clientId) {
+    // No config at all → show setup screen
+    document.getElementById('app-loading').style.display = 'none';
+    document.getElementById('app-setup').style.display = 'block';
+    return;
+  }
+
+  try {
+    // Try silent auth first (no popup)
+    token = await initAuthSilent(clientId);
+    if (!token) {
+      // Silent failed – show manual login button
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('loading-msg').textContent = 'Anmeldung erforderlich';
+      document.getElementById('btn-manual-login').style.display = '';
+      document.getElementById('login-hint').style.display = '';
+      return; // wait for user click
+    }
+
+    await continueAfterLogin();
+
+  } catch(e) {
+    document.getElementById('app-loading').style.display = 'none';
+    document.getElementById('app-error').style.display = 'block';
+    document.getElementById('error-msg').textContent = e.message + ' | URL: ' + window.location.href;
+  }
+}
+
+function setLoadMsg(m) {
+  const el = document.getElementById('loading-msg');
+  if (el) el.textContent = m;
+}
+
+// Patch odBase to use session override if present
+const _origOdBase = odBase;
+async function getSiteId() {
+  if (window._siteId) return window._siteId;
+  const r = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/omnicareitservices.sharepoint.com:/sites/${SP_SITE_NAME}`,
+    { headers: { Authorization: 'Bearer ' + token } }
+  );
+  if (!r.ok) throw new Error('Site nicht gefunden: ' + SP_SITE_NAME);
+  const data = await r.json();
+  window._siteId = data.id;
+  return data.id;
+}
+
+async function getDriveId(siteId) {
+  if (window._driveId) return window._driveId;
+  const r = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,
+    { headers: { Authorization: 'Bearer ' + token } }
+  );
+  const data = await r.json();
+  // Find the default "Documents" drive
+  const drive = data.value.find(d => d.name === 'Dokumente' || d.name === 'Documents' || d.driveType === 'documentLibrary');
+  window._driveId = drive ? drive.id : data.value[0].id;
+  return window._driveId;
+}
+
+async function odBaseUrl() {
+  if (STORAGE_MODE === 'sharepoint') {
+    const siteId = await getSiteId();
+    const driveId = await getDriveId(siteId);
+    const folder = SP_FOLDER.replace(/^\/|\/$/g, '');
+    return `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${folder}/${FILE_NAME}`;
+  } else {
+    const f = ONEDRIVE_FOLDER.replace(/^\/|\/$/g, '');
+    return `https://graph.microsoft.com/v1.0/me/drive/root:/${f}/${FILE_NAME}`;
+  }
+}
+
+// ── TABS ────────────────────────────────────────────────────
+function showTab(t) {
+  ['overview','steckbrief','form'].forEach(id => {
+    document.getElementById('view-' + id).style.display = 'none';
+    const tab = document.querySelector('[data-tab="' + id + '"]');
+    if (tab) tab.classList.remove('active');
+  });
+  document.getElementById('view-' + t).style.display = 'block';
+  const at = document.querySelector('[data-tab="' + t + '"]');
+  if (at) at.classList.add('active');
+  if (t === 'overview') renderOverview();
+  if (t === 'steckbrief') renderCards();
+}
+
+// ── OVERVIEW ────────────────────────────────────────────────
+const AL = { gruen: 'Grün', gelb: 'Gelb', rot: 'Rot' };
+function ab(a) {
+  return `<span class="ampel ${a}"><span class="adot"></span>${AL[a]||a}</span>`;
+}
+function curMs(p) {
+  const m = (p.meilensteine||[]).find(x=>x.status==='progress') ||
+            (p.meilensteine||[]).find(x=>x.status==='open');
+  if (!m) return '<span style="color:var(--green);font-size:.79rem">✓ Alle erledigt</span>';
+  return `<div class="mstext">${m.name}<br><span style="color:var(--accent);font-weight:600">${m.datum||''}</span></div>`;
+}
+
+function renderOverview() {
+  const g=projects.filter(p=>p.ampel==='gruen').length,
+        y=projects.filter(p=>p.ampel==='gelb').length,
+        r=projects.filter(p=>p.ampel==='rot').length;
+  document.getElementById('stats').innerHTML = `
+    <div class="scard"><div class="slabel">Projekte gesamt</div><div class="sval blue">${projects.length}</div></div>
+    <div class="scard"><div class="slabel">🟢 Auf Kurs</div><div class="sval green">${g}</div></div>
+    <div class="scard"><div class="slabel">🟡 Achtung</div><div class="sval yellow">${y}</div></div>
+    <div class="scard"><div class="slabel">🔴 Kritisch</div><div class="sval red">${r}</div></div>`;
+  document.getElementById('tbody').innerHTML = projects.map(p => `
+    <tr>
+      <td class="pname">${p.name}</td>
+      <td>${ab(p.ampel)}<span style="font-size:.76rem;color:var(--text-muted);display:block;margin-top:.18rem">${p.status}</span></td>
+      <td style="min-width:115px"><div style="display:flex;align-items:center;gap:.55rem">
+        <div class="pbar" style="width:90px"><div class="pfill" style="width:${p.fortschritt}%"></div></div>
+        <span style="font-size:.8rem;font-weight:600">${p.fortschritt}%</span>
+      </div></td>
+      <td>${curMs(p)}</td>
+      <td style="font-size:.83rem">${p.leiter||'—'}</td>
+      <td><div class="notetext">${p.anmerkungen||'—'}</div></td>
+      <td><div class="abtns">
+        <button class="bsm" onclick="editProject(${p.id})">✏️</button>
+        <button class="bsm del" onclick="askDel(${p.id})">🗑</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ── CARDS ────────────────────────────────────────────────────
+function mssl(s){
+  return s==='done'?'<span class="mss done">✓</span>':s==='progress'?'<span class="mss progress">⟳</span>':'<span class="mss open">○</span>';
+}
+function renderCards() {
+  document.getElementById('cgrid').innerHTML = projects.map(p => {
+    const risks = (p.risiken||'').split('\n').filter(Boolean);
+    const msl = (p.meilensteine||[]).slice(0,5).map(m=>
+      `<li><span class="msn">${m.name}</span><span class="msd">${m.datum||''}</span>${mssl(m.status)}</li>`).join('');
+    return `<div class="pcard">
+      <div class="cardh"><div class="ctitle">${p.name}</div>${ab(p.ampel)}</div>
+      <div class="cardb">
+        <div class="igrid">
+          <div><div class="ikey">Projektleiter</div><div class="ival">${p.leiter||'—'}</div></div>
+          <div><div class="ikey">Sponsor</div><div class="ival">${p.sponsor||'—'}</div></div>
+          <div><div class="ikey">Status</div><div class="ival">${p.status}</div></div>
+          <div><div class="ikey">Team</div><div class="ival">${p.team||'—'}</div></div>
+        </div>
+        <div class="slbl">Fortschritt</div>
+        <div class="prow"><div class="pbar" style="flex:1"><div class="pfill" style="width:${p.fortschritt}%"></div></div><span class="ppct">${p.fortschritt}%</span></div>
+        ${p.beschreibung?`<div style="margin:.6rem 0"><div class="slbl">Beschreibung</div><p style="font-size:.83rem;color:var(--text-muted);line-height:1.5">${p.beschreibung.slice(0,200)}${p.beschreibung.length>200?'…':''}</p></div>`:''}
+        ${msl?`<div style="margin:.6rem 0"><div class="slbl">Meilensteine</div><ul class="mslist">${msl}</ul></div>`:''}
+        ${risks.length?`<div style="margin:.6rem 0"><div class="slbl">Risiken</div>${risks.map(r=>`<span class="rtag">⚠ ${r}</span>`).join('')}</div>`:''}
+        ${p.anmerkungen?`<div style="margin:.6rem 0"><div class="slbl">Anmerkungen</div><p style="font-size:.83rem;color:var(--text-muted)">${p.anmerkungen}</p></div>`:''}
+      </div>
+      <div class="cardf"><button class="bsm" onclick="editProject(${p.id});showTab('form')">✏️ Bearbeiten</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ── FORM ────────────────────────────────────────────────────
+function pickAmpel(v) {
+  selAmpel = v;
+  document.querySelectorAll('.aopt').forEach(el => {
+    el.className = 'aopt' + (el.dataset.v === v ? (' s' + v[0]) : '');
+  });
+}
+function addMs(ms) {
+  ms = ms || { name:'', datum:'', verantwortlich:'', status:'open' };
+  const row = document.createElement('div'); row.className = 'msr';
+  row.innerHTML = `
+    <input type="text" class="mn" placeholder="Meilenstein" value="${esc(ms.name)}">
+    <input type="text" class="md" placeholder="Datum" value="${esc(ms.datum||'')}">
+    <input type="text" class="mv" placeholder="Verantwortlich" value="${esc(ms.verantwortlich||'')}">
+    <select class="ms">
+      <option value="open" ${ms.status==='open'?'selected':''}>○ Offen</option>
+      <option value="progress" ${ms.status==='progress'?'selected':''}>⟳ Laufend</option>
+      <option value="done" ${ms.status==='done'?'selected':''}>✓ Erledigt</option>
+    </select>
+    <button class="brm" onclick="this.parentElement.remove()">×</button>`;
+  document.getElementById('msed').appendChild(row);
+}
+function getMs() {
+  return Array.from(document.querySelectorAll('#msed .msr')).map(r=>({
+    name: r.querySelector('.mn').value,
+    datum: r.querySelector('.md').value,
+    verantwortlich: r.querySelector('.mv').value,
+    status: r.querySelector('.ms').value
+  })).filter(m=>m.name);
+}
+function newProject() {
+  document.getElementById('ftitle').textContent = 'Neues Projekt erfassen';
+  document.getElementById('eid').value = '';
+  ['name','leiter','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'].forEach(f=>document.getElementById('f-'+f).value='');
+  document.getElementById('f-status').value = 'In Bearbeitung';
+  document.getElementById('f-fortschritt').value = 0;
+  document.getElementById('f-bplan').value = '';
+  document.getElementById('f-bist').value = '';
+  document.getElementById('msed').innerHTML = '';
+  pickAmpel('gruen');
+}
+function editProject(id) {
+  const p = projects.find(x=>x.id===id); if (!p) return;
+  document.getElementById('ftitle').textContent = 'Projekt bearbeiten';
+  document.getElementById('eid').value = id;
+  ['name','leiter','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'].forEach(f=>document.getElementById('f-'+f).value=p[f]||'');
+  document.getElementById('f-status').value = p.status||'In Bearbeitung';
+  document.getElementById('f-fortschritt').value = p.fortschritt||0;
+  document.getElementById('f-bplan').value = p.budgetPlan||'';
+  document.getElementById('f-bist').value = p.budgetIst||'';
+  document.getElementById('msed').innerHTML = '';
+  (p.meilensteine||[]).forEach(ms=>addMs(ms));
+  pickAmpel(p.ampel||'gruen');
+  showTab('form');
+}
+async function saveProject() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Bitte Projektname eintragen'); return; }
+  const eid = document.getElementById('eid').value;
+  const d = {
+    name, leiter: v('f-leiter'), sponsor: v('f-sponsor'), team: v('f-team'),
+    beschreibung: v('f-beschreibung'), erfolgsmessung: v('f-erfolgsmessung'),
+    status: document.getElementById('f-status').value,
+    fortschritt: parseInt(document.getElementById('f-fortschritt').value)||0,
+    ampel: selAmpel,
+    budgetPlan: v('f-bplan'), budgetIst: v('f-bist'),
+    meilensteine: getMs(),
+    risiken: v('f-risiken'), fragen: v('f-fragen'), anmerkungen: v('f-anmerkungen')
+  };
+  if (eid) {
+    const i = projects.findIndex(p=>p.id==eid);
+    if (i>=0) projects[i] = {...projects[i], ...d};
+  } else {
+    projects.push({ id: nextId(), ...d });
+  }
+  await autosave();
+  toast(eid ? 'Projekt aktualisiert ✓' : 'Projekt gespeichert ✓');
+  showTab('overview');
+}
+function v(id) { return document.getElementById(id).value.trim(); }
+function nextId() { return projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1; }
+
+// ── DELETE ───────────────────────────────────────────────────
+function askDel(id) { delId=id; document.getElementById('del-modal').classList.add('open'); }
+function closeDelModal() { document.getElementById('del-modal').classList.remove('open'); delId=null; }
+document.getElementById('del-confirm').onclick = async function() {
+  if (delId!==null) {
+    projects = projects.filter(p=>p.id!==delId);
+    await autosave();
+    closeDelModal(); renderOverview(); toast('Projekt gelöscht');
+  }
+};
+
+// ── TOAST ────────────────────────────────────────────────────
+function toast(m) {
+  const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+function esc(s){return(s||'').replace(/"/g,'&quot;');}
+
+// ── DEFAULT DATA ─────────────────────────────────────────────
+const DEFAULT_PROJECTS = [
+  {id:1,name:"Einheitliches System zur Personalbedarfsplanung",leiter:"Sebastian Dettmann",sponsor:"BT",team:"BT, VR, DK, JW, SD",beschreibung:"Ablösung der bisherigen Excel Planung; Definition der relevanten Datenströme. Aufbau einer zentralen Daten- und Verarbeitungslogik zur Automatisierung sowie Bereitstellung über standardisierte Reporting-Tools.",erfolgsmessung:"KPIs im automatisierten Report entsprechen den realen Werten.",status:"In Bearbeitung",fortschritt:80,ampel:"gruen",budgetPlan:"komplett intern",budgetIst:"intern",meilensteine:[{name:"KickOff, Definition Zieltemplate und Ansprache Steuerberater",datum:"Juli 2025",verantwortlich:"Projektteam",status:"done"},{name:"Technische Grundlagen schaffen (SFTP, Script, DWH)",datum:"Dezember 2025",verantwortlich:"Digital, CO",status:"done"},{name:"Überführung der Daten in Reporting Tool",datum:"Januar 2026",verantwortlich:"CO",status:"progress"},{name:"Finalisierung Reporting und produktive Nutzung",datum:"Februar 2026",verantwortlich:"CO",status:"open"}],risiken:"Datenqualität der gelieferten Inhalte zu schlecht für automatisierte Verarbeitung",fragen:"Rücksprache mit Steuerberatern halten",anmerkungen:"Aktueller Fortschritt auf Zielkurs"},
+  {id:2,name:"Einheitliches AIS-System etablieren",leiter:"Thomas Wallawgo / Sebastian Dettmann",sponsor:"PM",team:"TW, SD, BT, PM, (*SK)",beschreibung:"Evaluation und Auswahl eines geeigneten AIS-Systems für die gesamte MVZ-Gruppe. Prozessaufnahme, Entwicklung eines gemeinsamen Zielprozesses, technische Umsetzung.",erfolgsmessung:"Ausgewähltes System implementiert und in n-MVZs produktiv genutzt.",status:"In Bearbeitung",fortschritt:15,ampel:"gelb",budgetPlan:"tbd - >100K",budgetIst:"0",meilensteine:[{name:"KickOff, Definition Scopes & Ressourcen",datum:"Dezember 2025",verantwortlich:"Projektteam",status:"done"},{name:"Aufsetzen Req.-Katalog",datum:"März 2026",verantwortlich:"Digital",status:"progress"},{name:"Marktevaluation und Ansprache Partner",datum:"Juli 2026",verantwortlich:"Projektteam",status:"open"},{name:"POC – Implementierung in einer Praxis",datum:"Juni 2027",verantwortlich:"Digital",status:"open"}],risiken:"Keine potenziellen Partner verfügbar\nAnforderungen passen nicht für alle Praxen\nKosten übersteigen den Nutzen",fragen:"Aktuell keine",anmerkungen:"Anforderungsworkshops mit Dr. Plewe und Scarlet erfolgt."},
+  {id:3,name:"Einheitliches System zur Personaleinsatzplanung",leiter:"",sponsor:"",team:"",beschreibung:"Einführung eines einheitlichen Systems zur Personaleinsatzplanung in allen MVZs.",erfolgsmessung:"",status:"In Vorbereitung",fortschritt:1,ampel:"gelb",budgetPlan:"tbd – fällt in den MVZs an",budgetIst:"0",meilensteine:[{name:"KickOff, Definition Scopes",datum:"Februar 2026",verantwortlich:"Projektteam",status:"open"},{name:"Einarbeitung in das Tool",datum:"März 2026",verantwortlich:"Digital",status:"open"},{name:"Rollout nach Rolloutplan",datum:"Tbd – Dez. 2026",verantwortlich:"Projektteam",status:"open"}],risiken:"MVZs möchten ausgewähltes Tool nicht einsetzen",fragen:"Aktuell keine",anmerkungen:""},
+  {id:4,name:"Einheitliche IT Standards etablieren",leiter:"Michael Ochmann",sponsor:"PM",team:"Team Bastian, PM, Digital, ES (RK)",beschreibung:"Etablierung einheitlicher IT-Standards über alle MVZs. IT-Security, Backup & Recovery, Microsoft Services, grundlegende Supportstrukturen.",erfolgsmessung:"Verabschiedung 'Service Katalog' und Rollout in n-MVZs.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"tbd – fällt in den MVZs an",budgetIst:"0",meilensteine:[{name:"KickOff, Definition Scopes",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Service Katalog definieren & Supportstrukturen",datum:"September 2026",verantwortlich:"Projektteam",status:"open"},{name:"Rollout vorantreiben",datum:"Tbd",verantwortlich:"Digital",status:"open"}],risiken:"Kosten in den einzelnen MVZs",fragen:"Support zentral vs. dezentral",anmerkungen:"RK mit einbeziehen!"},
+  {id:5,name:"Prozessoptimierung innerhalb der BU",leiter:"Sissy Schönfelder",sponsor:"PM",team:"Team Bastian, Team Michael, PM, Digital",beschreibung:"Kontinuierliche Entwicklung von Optimierungsmaßnahmen. Aufnahme und Analyse bestehender Prozesse. Identifikation von Ineffizienzen und Medienbrüchen.",erfolgsmessung:"Definierte Einzelprojekte abgeschlossen und in produktive Nutzung übergeben.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"Datenqualität CRM erhöhen",datum:"März 2026",verantwortlich:"SiS, MW",status:"progress"},{name:"CRM Rollout für Team Bastian",datum:"Tbd – Dez. 2026",verantwortlich:"SiS, Team Bastian",status:"open"},{name:"Automatisiertes Reporting (ETLs, KPIs, Dashboards)",datum:"Tbd – Dez. 2026",verantwortlich:"JW, PM, BT",status:"open"}],risiken:"Zeitliche Verfügbarkeiten notwendiger Ansprechpartner",fragen:"Wollen wir CRM auch für Operations nutzen?",anmerkungen:""},
+  {id:6,name:"Patientenportal inkl. Hotline etablieren",leiter:"Sebastian Dettmann",sponsor:"PM",team:"Team Bastian, PM, Digital, (*SK)",beschreibung:"Einführung eines modernen Patientenportals mit 2-Wege-Kommunikation, Self-Service-Funktionen und KI-gestützter Hotline.",erfolgsmessung:"Einheitliches Tool gefunden und in n-MVZs etabliert.",status:"In Bearbeitung",fortschritt:10,ampel:"gelb",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Marktevaluation & Identifikation Partner",datum:"Juni 2026",verantwortlich:"SD, BT, PM",status:"progress"},{name:"Auswahl Partner & Tool",datum:"September 2026",verantwortlich:"JW, PM, BT",status:"open"},{name:"Rollout gemäß Rolloutplan",datum:"TBD – Dez. 2027",verantwortlich:"Digital",status:"open"}],risiken:"Geeignetes Tool / Partner finden\nKostenaspekte MVZs",fragen:"Operative Projektmitarbeiter Digital",anmerkungen:"Erstes Tool in 2025 vorgestellt. Weiteres Screening läuft."}
+];
+
+// ── START ─────────────────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>
