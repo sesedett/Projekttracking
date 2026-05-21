@@ -298,7 +298,7 @@ const DRIVE_FOLDER_NAME = 'Projektdaten';   // Google Drive Ordner
 const FILE_NAME = 'projekt-dashboard.json';
 // ═══════════════════════════════════════════════════════════
 
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
 let accessToken = null;
 let fileId = null;
 let projects = [];
@@ -322,35 +322,23 @@ function redirectUri() {
 }
 
 async function startLogin() {
-  dbg('startLogin() aufgerufen');
+  dbg('startLogin() – Implicit Flow');
   dbg('redirectUri: ' + redirectUri());
   document.getElementById('btn-login').textContent = '⏳ Weiterleitung zu Google...';
   document.getElementById('btn-login').disabled = true;
-  try {
-    const verifier = genVerifier();
-    const challenge = await genChallenge(verifier);
-    const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
-    sessionStorage.setItem('gd_verifier', verifier);
-    sessionStorage.setItem('gd_state', state);
-    dbg('PKCE generiert, leite weiter...');
 
-    const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
-    url.searchParams.set('redirect_uri', redirectUri());
-    url.searchParams.set('response_type', 'code');
-    url.searchParams.set('scope', SCOPES);
-    url.searchParams.set('state', state);
-    url.searchParams.set('code_challenge', challenge);
-    url.searchParams.set('code_challenge_method', 'S256');
-    url.searchParams.set('access_type', 'offline');
-    url.searchParams.set('prompt', 'consent');
-    dbg('Google URL: ' + url.toString().substring(0,80) + '...');
-    window.location.href = url.toString();
-  } catch(e) {
-    dbg('startLogin Fehler: ' + e.message);
-    document.getElementById('btn-login').textContent = '🔐 Mit Google anmelden';
-    document.getElementById('btn-login').disabled = false;
-  }
+  const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
+  sessionStorage.setItem('gd_state', state);
+
+  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+  url.searchParams.set('redirect_uri', redirectUri());
+  url.searchParams.set('response_type', 'token');  // implicit – kein Secret nötig
+  url.searchParams.set('scope', 'https://www.googleapis.com/auth/drive.file');
+  url.searchParams.set('state', state);
+  url.searchParams.set('prompt', 'consent');
+  dbg('Leite weiter zu Google...');
+  window.location.href = url.toString();
 }
 
 async function exchangeCode(code) {
@@ -490,32 +478,35 @@ async function boot() {
   dbg('boot() gestartet');
   setMsg('Initialisiere...');
 
-  // Check for OAuth callback
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const state = params.get('state');
-  dbg('URL code: ' + (code ? 'JA' : 'NEIN') + ', state: ' + (state ? 'JA' : 'NEIN'));
+  // Check for implicit flow token in URL hash
+  const hash = new URLSearchParams(window.location.hash.substring(1));
+  const hashToken = hash.get('access_token');
+  const hashExpires = hash.get('expires_in');
+  const hashState = hash.get('state');
+  dbg('Hash token: ' + (hashToken ? 'JA' : 'NEIN'));
 
-  if (code && state && state === sessionStorage.getItem('gd_state')) {
-    setMsg('Anmeldung wird abgeschlossen...');
-    dbg('OAuth Code gefunden – tausche gegen Token...');
-    try {
-      const tokens = await exchangeCode(code);
-      dbg('Token erhalten: ' + (tokens.access_token ? 'JA' : 'NEIN'));
-      accessToken = tokens.access_token;
-      localStorage.setItem('gd_token', accessToken);
-      localStorage.setItem('gd_token_exp', Date.now() + (tokens.expires_in - 60) * 1000);
-      if (tokens.refresh_token) localStorage.setItem('gd_refresh', tokens.refresh_token);
-      sessionStorage.removeItem('gd_verifier');
-      sessionStorage.removeItem('gd_state');
-      window.history.replaceState({}, '', redirectUri());
-      await loadData();
-      return;
-    } catch(e) {
-      dbg('Token-Fehler: ' + e.message);
-      showError('Anmeldefehler: ' + e.message, ['Seite neu laden und erneut versuchen']);
-      return;
-    }
+  if (hashToken) {
+    dbg('Token aus Hash erhalten');
+    accessToken = hashToken;
+    localStorage.setItem('gd_token', accessToken);
+    localStorage.setItem('gd_token_exp', Date.now() + ((parseInt(hashExpires)||3600) - 60) * 1000);
+    sessionStorage.removeItem('gd_state');
+    window.history.replaceState({}, '', redirectUri());
+    await loadData();
+    return;
+  }
+
+  // Also check query params (some browsers)
+  const params = new URLSearchParams(window.location.search);
+  const qToken = params.get('access_token');
+  if (qToken) {
+    dbg('Token aus Query-Params');
+    accessToken = qToken;
+    localStorage.setItem('gd_token', accessToken);
+    localStorage.setItem('gd_token_exp', Date.now() + 3500*1000);
+    window.history.replaceState({}, '', redirectUri());
+    await loadData();
+    return;
   }
 
   // Try stored token
