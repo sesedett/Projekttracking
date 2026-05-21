@@ -146,8 +146,24 @@
 <div id="app-loading">
   <div class="spinner" id="spinner"></div>
   <h2>Projekt-Dashboard</h2>
-  <p id="load-msg">Verbinde mit Google...</p>
-  <button id="btn-login" onclick="startLogin()">🔐 Mit Google anmelden</button>
+  <p id="load-msg">Initialisiere...</p>
+  <div id="login-area" style="margin-top:2rem;text-align:center">
+    <button id="btn-login" onclick="startLogin()" style="
+      display:block;
+      padding:1rem 2.5rem;
+      font-size:1.1rem;
+      font-weight:700;
+      background:white;
+      color:#1a3a5c;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      box-shadow:0 4px 16px rgba(0,0,0,.2);
+      margin:0 auto;
+    ">🔐 Mit Google anmelden</button>
+    <p id="login-sub" style="margin-top:.75rem;font-size:.8rem;opacity:.6"></p>
+  </div>
+  <div id="debug-area" style="margin-top:2rem;max-width:400px;background:rgba(0,0,0,.3);border-radius:8px;padding:1rem;font-size:.75rem;font-family:monospace;color:#adf;text-align:left;display:none"></div>
 </div>
 
 <div id="app-error">
@@ -306,23 +322,35 @@ function redirectUri() {
 }
 
 async function startLogin() {
-  const verifier = genVerifier();
-  const challenge = await genChallenge(verifier);
-  const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
-  sessionStorage.setItem('gd_verifier', verifier);
-  sessionStorage.setItem('gd_state', state);
+  dbg('startLogin() aufgerufen');
+  dbg('redirectUri: ' + redirectUri());
+  document.getElementById('btn-login').textContent = '⏳ Weiterleitung zu Google...';
+  document.getElementById('btn-login').disabled = true;
+  try {
+    const verifier = genVerifier();
+    const challenge = await genChallenge(verifier);
+    const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
+    sessionStorage.setItem('gd_verifier', verifier);
+    sessionStorage.setItem('gd_state', state);
+    dbg('PKCE generiert, leite weiter...');
 
-  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
-  url.searchParams.set('redirect_uri', redirectUri());
-  url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', SCOPES);
-  url.searchParams.set('state', state);
-  url.searchParams.set('code_challenge', challenge);
-  url.searchParams.set('code_challenge_method', 'S256');
-  url.searchParams.set('access_type', 'offline');
-  url.searchParams.set('prompt', 'consent');
-  window.location.href = url.toString();
+    const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+    url.searchParams.set('redirect_uri', redirectUri());
+    url.searchParams.set('response_type', 'code');
+    url.searchParams.set('scope', SCOPES);
+    url.searchParams.set('state', state);
+    url.searchParams.set('code_challenge', challenge);
+    url.searchParams.set('code_challenge_method', 'S256');
+    url.searchParams.set('access_type', 'offline');
+    url.searchParams.set('prompt', 'consent');
+    dbg('Google URL: ' + url.toString().substring(0,80) + '...');
+    window.location.href = url.toString();
+  } catch(e) {
+    dbg('startLogin Fehler: ' + e.message);
+    document.getElementById('btn-login').textContent = '🔐 Mit Google anmelden';
+    document.getElementById('btn-login').disabled = false;
+  }
 }
 
 async function exchangeCode(code) {
@@ -452,18 +480,28 @@ async function tryRefresh() {
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
+function dbg(msg) {
+  console.log('[PD]', msg);
+  const el = document.getElementById('debug-area');
+  if (el) { el.style.display='block'; el.innerHTML += msg + '<br>'; }
+}
+
 async function boot() {
-  setMsg('Verbinde mit Google...');
+  dbg('boot() gestartet');
+  setMsg('Initialisiere...');
 
   // Check for OAuth callback
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const state = params.get('state');
+  dbg('URL code: ' + (code ? 'JA' : 'NEIN') + ', state: ' + (state ? 'JA' : 'NEIN'));
 
   if (code && state && state === sessionStorage.getItem('gd_state')) {
     setMsg('Anmeldung wird abgeschlossen...');
+    dbg('OAuth Code gefunden – tausche gegen Token...');
     try {
       const tokens = await exchangeCode(code);
+      dbg('Token erhalten: ' + (tokens.access_token ? 'JA' : 'NEIN'));
       accessToken = tokens.access_token;
       localStorage.setItem('gd_token', accessToken);
       localStorage.setItem('gd_token_exp', Date.now() + (tokens.expires_in - 60) * 1000);
@@ -474,6 +512,7 @@ async function boot() {
       await loadData();
       return;
     } catch(e) {
+      dbg('Token-Fehler: ' + e.message);
       showError('Anmeldefehler: ' + e.message, ['Seite neu laden und erneut versuchen']);
       return;
     }
@@ -482,26 +521,32 @@ async function boot() {
   // Try stored token
   const storedToken = localStorage.getItem('gd_token');
   const tokenExp = localStorage.getItem('gd_token_exp');
+  dbg('Gespeicherter Token: ' + (storedToken ? 'JA' : 'NEIN') + ', gültig: ' + (tokenExp && Date.now() < parseInt(tokenExp) ? 'JA' : 'NEIN'));
   if (storedToken && tokenExp && Date.now() < parseInt(tokenExp)) {
     accessToken = storedToken;
+    dbg('Nutze gespeicherten Token');
     await loadData();
     return;
   }
 
   // Try refresh token
   const refreshTk = localStorage.getItem('gd_refresh');
+  dbg('Refresh Token: ' + (refreshTk ? 'JA' : 'NEIN'));
   if (refreshTk) {
     try {
       setMsg('Token wird erneuert...');
       accessToken = await refreshToken(refreshTk);
       localStorage.setItem('gd_token', accessToken);
       localStorage.setItem('gd_token_exp', Date.now() + 3500*1000);
+      dbg('Token erneuert');
       await loadData();
       return;
-    } catch(e) {}
+    } catch(e) {
+      dbg('Refresh fehlgeschlagen: ' + e.message);
+    }
   }
 
-  // Need login
+  dbg('Zeige Login-Button');
   showLoginBtn();
 }
 
@@ -537,9 +582,8 @@ async function loadData() {
 function setMsg(m) { const e=document.getElementById('load-msg'); if(e) e.textContent=m; }
 function showLoginBtn(msg) {
   document.getElementById('spinner').style.display='none';
-  setMsg(msg || 'Bitte anmelden um fortzufahren');
-  document.getElementById('btn-login').style.display='';
-  document.getElementById('btn-login').style.marginTop='1.5rem';
+  setMsg(msg || 'Bitte mit Google anmelden');
+  document.getElementById('btn-login').style.display='block';
 }
 function showError(msg, hints) {
   document.getElementById('app-loading').style.display='none';
