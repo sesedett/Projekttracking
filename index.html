@@ -21,7 +21,7 @@
   #app-loading p{color:rgba(255,255,255,.75);font-size:.9rem;text-align:center;max-width:320px;}
   .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
-  #btn-login{display:none;margin-top:1rem;padding:.8rem 2rem;border-radius:8px;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.15);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s;}
+  #btn-login{display:none;margin-top:1.5rem;padding:.8rem 2rem;border-radius:8px;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.15);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s;}
   #btn-login:hover{background:rgba(255,255,255,.28);}
 
   #app-error{display:none;max-width:540px;margin:3rem auto;background:white;border-radius:12px;padding:2rem;box-shadow:var(--shadow-lg);}
@@ -502,9 +502,7 @@ async function boot() {
   }
 
   // Need login
-  document.getElementById('spinner').style.display = 'none';
-  setMsg('Anmeldung erforderlich');
-  document.getElementById('btn-login').style.display = '';
+  showLoginBtn();
 }
 
 async function loadData() {
@@ -537,10 +535,11 @@ async function loadData() {
 }
 
 function setMsg(m) { const e=document.getElementById('load-msg'); if(e) e.textContent=m; }
-function showLoginBtn() {
+function showLoginBtn(msg) {
   document.getElementById('spinner').style.display='none';
-  setMsg('Sitzung abgelaufen – bitte neu anmelden');
+  setMsg(msg || 'Bitte anmelden um fortzufahren');
   document.getElementById('btn-login').style.display='';
+  document.getElementById('btn-login').style.marginTop='1.5rem';
 }
 function showError(msg, hints) {
   document.getElementById('app-loading').style.display='none';
@@ -715,6 +714,14 @@ const DEFAULT_PROJECTS=[
   {id:5,name:"Prozessoptimierung innerhalb der BU",leiter:"Sissy Schönfelder",sponsor:"PM",team:"Team Bastian, Team Michael, PM, Digital",beschreibung:"Kontinuierliche Entwicklung von Optimierungsmaßnahmen. Identifikation von Ineffizienzen und Medienbrüchen.",erfolgsmessung:"Einzelprojekte abgeschlossen und in produktive Nutzung übergeben.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"CRM Datenqualität erhöhen",datum:"März 2026",verantwortlich:"SiS, MW",status:"progress"},{name:"CRM Rollout Team Bastian",datum:"Tbd – Dez. 2026",verantwortlich:"SiS",status:"open"},{name:"Automatisiertes Reporting",datum:"Tbd – Dez. 2026",verantwortlich:"JW, PM, BT",status:"open"}],risiken:"Zeitliche Verfügbarkeiten der Ansprechpartner",fragen:"CRM auch für Operations?",anmerkungen:""},
   {id:6,name:"Patientenportal inkl. Hotline etablieren",leiter:"Sebastian Dettmann",sponsor:"PM",team:"Team Bastian, PM, Digital, (*SK)",beschreibung:"Einführung eines modernen Patientenportals mit 2-Wege-Kommunikation und KI-gestützter Hotline.",erfolgsmessung:"Einheitliches Tool in n-MVZs etabliert.",status:"In Bearbeitung",fortschritt:10,ampel:"gelb",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Marktevaluation",datum:"Juni 2026",verantwortlich:"SD, BT, PM",status:"progress"},{name:"Auswahl Partner & Tool",datum:"September 2026",verantwortlich:"JW, PM, BT",status:"open"},{name:"Rollout",datum:"TBD – Dez. 2027",verantwortlich:"Digital",status:"open"}],risiken:"Geeignetes Tool finden\nKostenaspekte MVZs",fragen:"Operative Projektmitarbeiter",anmerkungen:"Erstes Tool 2025 vorgestellt."}
 ];
+
+// Fallback: show login button after 4s if still loading
+setTimeout(() => {
+  if (document.getElementById('app-loading').style.display !== 'none' &&
+      document.getElementById('btn-login').style.display === 'none') {
+    showLoginBtn('Verbindung dauert lange – bitte anmelden');
+  }
+}, 4000);
 
 boot();
 </script>
