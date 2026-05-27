@@ -60,10 +60,13 @@
   .pbar{background:var(--border);border-radius:4px;height:7px;overflow:hidden;}
   .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
 
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
-  .scard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;box-shadow:var(--shadow);}
-  .slabel{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.35rem;}
-  .sval{font-family:'DM Serif Display',serif;font-size:2rem;}
+  .scard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;box-shadow:var(--shadow);transition:box-shadow .15s,transform .1s;}
+  .scard:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px);}
+  .scard.active-filter{box-shadow:0 0 0 2px var(--accent);}
+  .scard-total{padding:1rem 1.2rem;}
+  .slabel{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.25rem;}
+  .sval{font-family:'DM Serif Display',serif;font-size:1.6rem;}
+  .scard-total .sval{font-size:2.2rem;}
   .sval.blue{color:var(--accent);}.sval.green{color:var(--green);}.sval.yellow{color:var(--yellow);}.sval.red{color:var(--red);}
 
   .twrap{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);}
@@ -199,14 +202,74 @@
 
   <main>
     <div id="view-overview">
-      <div class="stats" id="stats"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div id="stats-area" style="margin-bottom:1.5rem">
+        <!-- Row 1: Gesamt -->
+        <div style="display:grid;grid-template-columns:1fr;gap:.6rem;margin-bottom:.6rem">
+          <div class="scard scard-total" id="sc-total" onclick="filterStatus('')" style="cursor:pointer">
+            <div class="slabel">Projekte gesamt</div>
+            <div class="sval blue" id="sv-total">0</div>
+          </div>
+        </div>
+        <!-- Row 2: Grün, Gelb, Rot -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.6rem">
+          <div class="scard" id="sc-gruen" onclick="filterStatus('gruen')" style="cursor:pointer;border-left:3px solid var(--green)">
+            <div class="slabel" style="color:var(--green)">🟢 Gestartet (on track)</div>
+            <div class="sval green" id="sv-gruen">0</div>
+          </div>
+          <div class="scard" id="sc-gelb" onclick="filterStatus('gelb')" style="cursor:pointer;border-left:3px solid #f0a800">
+            <div class="slabel" style="color:var(--yellow)">🟡 Leichte Verzögerung</div>
+            <div class="sval yellow" id="sv-gelb">0</div>
+          </div>
+          <div class="scard" id="sc-rot" onclick="filterStatus('rot')" style="cursor:pointer;border-left:3px solid var(--red)">
+            <div class="slabel" style="color:var(--red)">🔴 Verzögert</div>
+            <div class="sval red" id="sv-rot">0</div>
+          </div>
+        </div>
+        <!-- Row 3: Grau, Blau -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem">
+          <div class="scard" id="sc-grau" onclick="filterStatus('grau')" style="cursor:pointer;border-left:3px solid #999">
+            <div class="slabel" style="color:#666">⚪ Nicht gestartet (wie geplant)</div>
+            <div class="sval" style="color:#666" id="sv-grau">0</div>
+          </div>
+          <div class="scard" id="sc-blau" onclick="filterStatus('blau')" style="cursor:pointer;border-left:3px solid #1a56a0">
+            <div class="slabel" style="color:#1a56a0">🔵 Nicht gestartet (verzögert)</div>
+            <div class="sval" style="color:#1a56a0" id="sv-blau">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Alle Projekte</h2>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+          <input type="text" id="filter-search" placeholder="🔍 Suche..." oninput="applyFilters()"
+            style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;width:160px">
+          <select id="filter-status" onchange="applyFilters()"
+            style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white">
+            <option value="">Alle Status</option>
+            <option value="gruen">🟢 Gestartet (on track)</option>
+            <option value="gelb">🟡 Leichte Verzögerung</option>
+            <option value="rot">🔴 Verzögert</option>
+            <option value="grau">⚪ Nicht gestartet (wie geplant)</option>
+            <option value="blau">🔵 Nicht gestartet (verzögert)</option>
+          </select>
+          <select id="filter-leiter" onchange="applyFilters()"
+            style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white">
+            <option value="">Alle Projektleiter</option>
+          </select>
+          <button onclick="resetFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white;cursor:pointer;color:var(--text-muted)">✕ Reset</button>
+        </div>
       </div>
       <div class="twrap"><table>
         <thead><tr>
-          <th>Projektname</th><th>Projektstatus</th><th>Fortschritt</th>
-          <th>Akt. Meilenstein</th><th>Projektleiter</th><th>PL Fachbereich</th><th>Anmerkungen</th><th></th>
+          <th style="cursor:pointer" onclick="sortBy('name')">Projektname <span id="sort-name"></span></th>
+          <th style="cursor:pointer" onclick="sortBy('ampel')">Projektstatus <span id="sort-ampel"></span></th>
+          <th style="cursor:pointer" onclick="sortBy('fortschritt')">Fortschritt <span id="sort-fortschritt"></span></th>
+          <th>Akt. Meilenstein</th>
+          <th style="cursor:pointer" onclick="sortBy('leiter')">Projektleiter <span id="sort-leiter"></span></th>
+          <th>PL Fachbereich</th>
+          <th>Anmerkungen</th>
+          <th></th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table></div>
@@ -619,16 +682,87 @@ function curMs(p){
   if(!m) return '<span style="color:var(--green);font-size:.79rem">✓ Alle erledigt</span>';
   return `<div class="mstext">${m.name}<br><span style="color:var(--accent);font-weight:600">${m.datum||''}</span></div>`;
 }
-function renderOverview(){
-  const g=projects.filter(p=>p.ampel==='gruen').length,
-        y=projects.filter(p=>p.ampel==='gelb').length,
-        r=projects.filter(p=>p.ampel==='rot').length;
-  document.getElementById('stats').innerHTML=`
-    <div class="scard"><div class="slabel">Projekte gesamt</div><div class="sval blue">${projects.length}</div></div>
-    <div class="scard"><div class="slabel">🟢 Auf Kurs</div><div class="sval green">${g}</div></div>
-    <div class="scard"><div class="slabel">🟡 Achtung</div><div class="sval yellow">${y}</div></div>
-    <div class="scard"><div class="slabel">🔴 Kritisch</div><div class="sval red">${r}</div></div>`;
-  document.getElementById('tbody').innerHTML=projects.map(p=>`
+let currentFilter = '';
+let currentSort = { col: '', dir: 1 };
+
+function updateStats() {
+  document.getElementById('sv-total').textContent = projects.length;
+  document.getElementById('sv-gruen').textContent = projects.filter(p=>p.ampel==='gruen').length;
+  document.getElementById('sv-gelb').textContent = projects.filter(p=>p.ampel==='gelb').length;
+  document.getElementById('sv-rot').textContent = projects.filter(p=>p.ampel==='rot').length;
+  document.getElementById('sv-grau').textContent = projects.filter(p=>p.ampel==='grau'||!p.ampel).length;
+  document.getElementById('sv-blau').textContent = projects.filter(p=>p.ampel==='blau').length;
+  // Update leiter dropdown
+  const leiterSel = document.getElementById('filter-leiter');
+  if (leiterSel) {
+    const cur = leiterSel.value;
+    const leiters = [...new Set(projects.map(p=>p.leiter).filter(Boolean))].sort();
+    leiterSel.innerHTML = '<option value="">Alle Projektleiter</option>' +
+      leiters.map(l=>`<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
+  }
+}
+
+function filterStatus(status) {
+  currentFilter = status;
+  const sel = document.getElementById('filter-status');
+  if (sel) sel.value = status;
+  // Highlight active card
+  ['gruen','gelb','rot','grau','blau','total'].forEach(k => {
+    const el = document.getElementById('sc-'+k);
+    if (el) el.classList.toggle('active-filter', k === (status||'total') );
+  });
+  applyFilters();
+}
+
+function resetFilters() {
+  currentFilter = '';
+  currentSort = { col: '', dir: 1 };
+  const fs = document.getElementById('filter-status');
+  const fl = document.getElementById('filter-leiter');
+  const ft = document.getElementById('filter-search');
+  if (fs) fs.value = '';
+  if (fl) fl.value = '';
+  if (ft) ft.value = '';
+  ['gruen','gelb','rot','grau','blau','total'].forEach(k => {
+    const el = document.getElementById('sc-'+k);
+    if (el) el.classList.remove('active-filter');
+  });
+  renderRows(projects);
+}
+
+function sortBy(col) {
+  if (currentSort.col === col) currentSort.dir *= -1;
+  else { currentSort.col = col; currentSort.dir = 1; }
+  ['name','ampel','fortschritt','leiter'].forEach(c => {
+    const el = document.getElementById('sort-'+c);
+    if (el) el.textContent = c === col ? (currentSort.dir === 1 ? ' ▲' : ' ▼') : '';
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  const statusF = (document.getElementById('filter-status')||{value:''}).value;
+  const leiterF = (document.getElementById('filter-leiter')||{value:''}).value;
+  const searchF = ((document.getElementById('filter-search')||{value:''}).value||'').toLowerCase();
+  let filtered = projects.filter(p => {
+    const ampel = p.ampel || 'grau';
+    if (statusF && ampel !== statusF) return false;
+    if (leiterF && p.leiter !== leiterF) return false;
+    if (searchF && !JSON.stringify(p).toLowerCase().includes(searchF)) return false;
+    return true;
+  });
+  if (currentSort.col) {
+    filtered = [...filtered].sort((a,b) => {
+      let av = a[currentSort.col]||'', bv = b[currentSort.col]||'';
+      if (typeof av === 'number') return (av-bv)*currentSort.dir;
+      return av.toString().localeCompare(bv.toString()) * currentSort.dir;
+    });
+  }
+  renderRows(filtered);
+}
+
+function renderRows(list) {
+  document.getElementById('tbody').innerHTML = list.map(p=>`
     <tr>
       <td class="pname">${p.name}</td>
       <td>${ab(p.ampel)}<span style="font-size:.76rem;color:var(--text-muted);display:block;margin-top:.18rem">${p.status}</span></td>
@@ -645,6 +779,11 @@ function renderOverview(){
         <button class="bsm del" onclick="askDel(${p.id})">🗑</button>
       </div></td>
     </tr>`).join('');
+}
+
+function renderOverview(){
+  updateStats();
+  applyFilters();
 }
 
 // ── CARDS ────────────────────────────────────────────────────
