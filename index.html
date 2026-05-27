@@ -54,6 +54,8 @@
   .ampel.gruen{background:var(--green-bg);color:var(--green);}.ampel.gruen .adot{background:var(--green);}
   .ampel.gelb{background:var(--yellow-bg);color:var(--yellow);}.ampel.gelb .adot{background:#f0a800;}
   .ampel.rot{background:var(--red-bg);color:var(--red);}.ampel.rot .adot{background:var(--red);}
+  .ampel.grau{background:#f0f0f0;color:#666;}.ampel.grau .adot{background:#999;}
+  .ampel.blau{background:#e8f0fe;color:#1a56a0;}.ampel.blau .adot{background:#1a56a0;}
 
   .pbar{background:var(--border);border-radius:4px;height:7px;overflow:hidden;}
   .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
@@ -203,8 +205,8 @@
       </div>
       <div class="twrap"><table>
         <thead><tr>
-          <th>Projektname</th><th>Status</th><th>Fortschritt</th>
-          <th>Akt. Meilenstein</th><th>Projektleiter</th><th>Anmerkungen</th><th></th>
+          <th>Projektname</th><th>Projektstatus</th><th>Fortschritt</th>
+          <th>Akt. Meilenstein</th><th>Projektleiter</th><th>PL Fachbereich</th><th>Anmerkungen</th><th></th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table></div>
@@ -228,8 +230,12 @@
             <div class="fg"><label>Projektleiter</label><input type="text" id="f-leiter"></div>
           </div>
           <div class="frow">
+            <div class="fg"><label>PL Fachbereich</label><input type="text" id="f-pl-fachbereich" placeholder="z.B. Dr. Müller"></div>
             <div class="fg"><label>Sponsor</label><input type="text" id="f-sponsor"></div>
+          </div>
+          <div class="frow">
             <div class="fg"><label>Projektteam</label><input type="text" id="f-team" placeholder="z.B. BT, VR, SD"></div>
+            <div class="fg"></div>
           </div>
           <div class="frow s1"><div class="fg"><label>Beschreibung & Ziele</label><textarea id="f-beschreibung"></textarea></div></div>
           <div class="frow s1"><div class="fg"><label>Erfolgsmessung</label><textarea id="f-erfolgsmessung" style="min-height:58px"></textarea></div></div>
@@ -249,11 +255,13 @@
             <div class="fg"><label>Budget (Geplant)</label><input type="text" id="f-bplan"></div>
             <div class="fg"><label>Budget (IST)</label><input type="text" id="f-bist"></div>
           </div>
-          <div class="fg" style="margin-top:.5rem"><label>Ampelstatus</label>
-            <div class="asel">
-              <div class="aopt" data-v="gruen" onclick="pickAmpel('gruen')">🟢 Grün</div>
-              <div class="aopt" data-v="gelb" onclick="pickAmpel('gelb')">🟡 Gelb</div>
-              <div class="aopt" data-v="rot" onclick="pickAmpel('rot')">🔴 Rot</div>
+          <div class="fg" style="margin-top:.5rem"><label>Projektstatus</label>
+            <div class="asel" style="flex-wrap:wrap;gap:.4rem">
+              <div class="aopt" data-v="gruen" onclick="pickAmpel('gruen')" style="font-size:.75rem;flex:1;min-width:120px">🟢 Gestartet (on track)</div>
+              <div class="aopt" data-v="gelb" onclick="pickAmpel('gelb')" style="font-size:.75rem;flex:1;min-width:120px">🟡 Gestartet (leichte Verzögerung)</div>
+              <div class="aopt" data-v="rot" onclick="pickAmpel('rot')" style="font-size:.75rem;flex:1;min-width:120px">🔴 Gestartet (verzögert)</div>
+              <div class="aopt" data-v="grau" onclick="pickAmpel('grau')" style="font-size:.75rem;flex:1;min-width:120px">⚪ Nicht gestartet (wie geplant)</div>
+              <div class="aopt" data-v="blau" onclick="pickAmpel('blau')" style="font-size:.75rem;flex:1;min-width:120px">🔵 Nicht gestartet (verzögert)</div>
             </div>
           </div>
         </div>
@@ -598,8 +606,14 @@ function showTab(t) {
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────
-const AL={gruen:'Grün',gelb:'Gelb',rot:'Rot'};
-function ab(a){return `<span class="ampel ${a}"><span class="adot"></span>${AL[a]||a}</span>`;}
+const AL={
+  gruen:'Gestartet (on track)',
+  gelb:'Gestartet (leichte Verzögerung)',
+  rot:'Gestartet (verzögert)',
+  grau:'Nicht gestartet (wie geplant)',
+  blau:'Nicht gestartet (verzögert)'
+};
+function ab(a){return `<span class="ampel ${a||'grau'}"><span class="adot"></span>${AL[a]||a}</span>`;}
 function curMs(p){
   const m=(p.meilensteine||[]).find(x=>x.status==='progress')||(p.meilensteine||[]).find(x=>x.status==='open');
   if(!m) return '<span style="color:var(--green);font-size:.79rem">✓ Alle erledigt</span>';
@@ -624,6 +638,7 @@ function renderOverview(){
       </div></td>
       <td>${curMs(p)}</td>
       <td style="font-size:.83rem">${p.leiter||'—'}</td>
+      <td style="font-size:.83rem">${p.plFachbereich||'—'}</td>
       <td><div class="notetext">${p.anmerkungen||'—'}</div></td>
       <td><div class="abtns">
         <button class="bsm" onclick="editProject(${p.id})">✏️</button>
@@ -644,9 +659,10 @@ function renderCards(){
       <div class="cardb">
         <div class="igrid">
           <div><div class="ikey">Projektleiter</div><div class="ival">${p.leiter||'—'}</div></div>
+          <div><div class="ikey">PL Fachbereich</div><div class="ival">${p.plFachbereich||'—'}</div></div>
           <div><div class="ikey">Sponsor</div><div class="ival">${p.sponsor||'—'}</div></div>
-          <div><div class="ikey">Status</div><div class="ival">${p.status}</div></div>
           <div><div class="ikey">Team</div><div class="ival">${p.team||'—'}</div></div>
+          <div><div class="ikey">Status</div><div class="ival">${p.status}</div></div>
         </div>
         <div class="slbl">Fortschritt</div>
         <div class="prow"><div class="pbar" style="flex:1"><div class="pfill" style="width:${p.fortschritt}%"></div></div><span class="ppct">${p.fortschritt}%</span></div>
@@ -661,10 +677,18 @@ function renderCards(){
 }
 
 // ── FORM ─────────────────────────────────────────────────────
+const AMPEL_STYLES = {
+  gruen: 'border-color:var(--green);background:var(--green-bg);color:var(--green)',
+  gelb:  'border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow)',
+  rot:   'border-color:var(--red);background:var(--red-bg);color:var(--red)',
+  grau:  'border-color:#999;background:#f0f0f0;color:#666',
+  blau:  'border-color:#1a56a0;background:#e8f0fe;color:#1a56a0'
+};
 function pickAmpel(v){
   selAmpel=v;
   document.querySelectorAll('.aopt').forEach(el=>{
-    el.className='aopt'+(el.dataset.v===v?(' s'+v[0]):'');
+    el.style.cssText = el.dataset.v===v ? (AMPEL_STYLES[v]||'') + ';border-width:2px;border-style:solid' : '';
+    el.className='aopt';
   });
 }
 function addMs(ms){
@@ -691,7 +715,7 @@ function getMs(){
 function newProject(){
   document.getElementById('ftitle').textContent='Neues Projekt erfassen';
   document.getElementById('eid').value='';
-  ['name','leiter','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'].forEach(f=>document.getElementById('f-'+f).value='');
+  ['name','leiter','pl-fachbereich','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
   document.getElementById('f-status').value='In Bearbeitung';
   document.getElementById('f-fortschritt').value=0;
   document.getElementById('f-bplan').value='';document.getElementById('f-bist').value='';
@@ -702,7 +726,16 @@ function editProject(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
   document.getElementById('ftitle').textContent='Projekt bearbeiten';
   document.getElementById('eid').value=id;
-  ['name','leiter','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'].forEach(f=>document.getElementById('f-'+f).value=p[f]||'');
+  document.getElementById('f-name').value=p.name||'';
+  document.getElementById('f-leiter').value=p.leiter||'';
+  document.getElementById('f-pl-fachbereich').value=p.plFachbereich||'';
+  document.getElementById('f-sponsor').value=p.sponsor||'';
+  document.getElementById('f-team').value=p.team||'';
+  document.getElementById('f-beschreibung').value=p.beschreibung||'';
+  document.getElementById('f-erfolgsmessung').value=p.erfolgsmessung||'';
+  document.getElementById('f-risiken').value=p.risiken||'';
+  document.getElementById('f-fragen').value=p.fragen||'';
+  document.getElementById('f-anmerkungen').value=p.anmerkungen||'';
   document.getElementById('f-status').value=p.status||'In Bearbeitung';
   document.getElementById('f-fortschritt').value=p.fortschritt||0;
   document.getElementById('f-bplan').value=p.budgetPlan||'';document.getElementById('f-bist').value=p.budgetIst||'';
@@ -714,7 +747,7 @@ async function saveProject(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){toast('Bitte Projektname eintragen');return;}
   const eid=document.getElementById('eid').value;
-  const d={name,leiter:v('f-leiter'),sponsor:v('f-sponsor'),team:v('f-team'),
+  const d={name,leiter:v('f-leiter'),plFachbereich:v('f-pl-fachbereich'),sponsor:v('f-sponsor'),team:v('f-team'),
     beschreibung:v('f-beschreibung'),erfolgsmessung:v('f-erfolgsmessung'),
     status:document.getElementById('f-status').value,
     fortschritt:parseInt(document.getElementById('f-fortschritt').value)||0,
