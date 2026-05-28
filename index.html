@@ -11,6 +11,7 @@
     --text:#1a1917;--text-muted:#6b6860;--accent:#1a3a5c;--accent2:#2d5f8a;
     --green:#2a7a4b;--green-bg:#e8f5ee;--yellow:#b87d00;--yellow-bg:#fdf3dc;
     --red:#c0392b;--red-bg:#fdecea;
+    --orange:#c25e00;--orange-bg:#fdeede;
     --shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 32px rgba(0,0,0,.1);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -56,6 +57,7 @@
   .ampel.rot{background:var(--red-bg);color:var(--red);}.ampel.rot .adot{background:var(--red);}
   .ampel.grau{background:#f0f0f0;color:#666;}.ampel.grau .adot{background:#999;}
   .ampel.blau{background:#e8f0fe;color:#1a56a0;}.ampel.blau .adot{background:#1a56a0;}
+  .ampel.orange{background:var(--orange-bg);color:var(--orange);}.ampel.orange .adot{background:var(--orange);}
 
   .pbar{background:var(--border);border-radius:4px;height:7px;overflow:hidden;}
   .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
@@ -234,8 +236,8 @@
             </div>
           </div>
         </div>
-        <!-- Row 3: Grau, Blau -->
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.45rem">
+        <!-- Row 3: Grau, Blau, Orange -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">
           <div class="scard" id="sc-grau" onclick="filterStatus('grau')" style="cursor:pointer;border-left:3px solid #999">
             <div class="scard-inner">
               <div class="slabel" style="color:#666">⚪ Nicht gestartet (wie geplant)</div>
@@ -246,6 +248,12 @@
             <div class="scard-inner">
               <div class="slabel" style="color:#1a56a0">🔵 Nicht gestartet (verzögert)</div>
               <div class="sval" style="color:#1a56a0" id="sv-blau">0</div>
+            </div>
+          </div>
+          <div class="scard" id="sc-orange" onclick="filterStatus('orange')" style="cursor:pointer;border-left:3px solid var(--orange)">
+            <div class="scard-inner">
+              <div class="slabel" style="color:var(--orange)">🟠 Abgeschlossen</div>
+              <div class="sval" style="color:var(--orange)" id="sv-orange">0</div>
             </div>
           </div>
         </div>
@@ -265,6 +273,7 @@
             <option value="rot">🔴 Verzögert</option>
             <option value="grau">⚪ Nicht gestartet (wie geplant)</option>
             <option value="blau">🔵 Nicht gestartet (verzögert)</option>
+            <option value="orange">🟠 Abgeschlossen</option>
           </select>
           <select id="filter-leiter" style="display:none"></select>
           <button onclick="resetFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white;cursor:pointer;color:var(--text-muted)">✕ Reset</button>
@@ -335,6 +344,7 @@
               <div class="aopt" data-v="rot" onclick="pickAmpel('rot')" style="font-size:.75rem;flex:1;min-width:120px">🔴 Gestartet (verzögert)</div>
               <div class="aopt" data-v="grau" onclick="pickAmpel('grau')" style="font-size:.75rem;flex:1;min-width:120px">⚪ Nicht gestartet (wie geplant)</div>
               <div class="aopt" data-v="blau" onclick="pickAmpel('blau')" style="font-size:.75rem;flex:1;min-width:120px">🔵 Nicht gestartet (verzögert)</div>
+              <div class="aopt" data-v="orange" onclick="pickAmpel('orange')" style="font-size:.75rem;flex:1;min-width:120px">🟠 Abgeschlossen</div>
             </div>
           </div>
         </div>
@@ -382,6 +392,7 @@ const FILE_NAME = 'projekt-dashboard.json';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
 let accessToken = null;
 let fileId = null;
+let _folderId = null;
 let projects = [];
 let selAmpel = 'gruen';
 let delId = null;
@@ -551,18 +562,13 @@ async function autosave(retryCount=0) {
     syncUI('ok','Gespeichert ✓');
   } catch(e) {
     console.error('autosave error:', e.message);
-    if (e.message === 'AUTH_EXPIRED') {
-      syncUI('busy', 'Token erneuern...');
-      try {
-        await tryRefresh();
-        await autosave(retryCount);
-      } catch(e2) {
-        syncUI('err', 'Sitzung abgelaufen');
-        toast('Sitzung abgelaufen – bitte Seite neu laden und neu anmelden');
-        localStorage.removeItem('gd_token');
-        localStorage.removeItem('gd_token_exp');
-        setTimeout(() => showLoginBtn('Sitzung abgelaufen – bitte neu anmelden'), 2000);
-      }
+    if (e.message === 'AUTH_EXPIRED' || e.message === 'TOKEN_EXPIRED' || (e.message && e.message.includes('401'))) {
+      accessToken = null;
+      localStorage.removeItem('gd_token');
+      localStorage.removeItem('gd_token_exp');
+      syncUI('err', 'Sitzung abgelaufen');
+      // Show re-login overlay on top of current app
+      showReloginBanner();
       return;
     }
     if (e.message === '404' || (e.message && e.message.includes('404'))) {
@@ -585,48 +591,11 @@ async function autosave(retryCount=0) {
 async function forceSave() { await autosave(); toast('In Google Drive gespeichert ✓'); }
 
 async function tryRefresh() {
-  // Implicit flow has no refresh token – do silent re-auth via hidden iframe
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error('Silent re-auth Timeout'));
-    }, 15000);
-
-    // Listen for token from iframe
-    function onMsg(e) {
-      if (e.origin !== window.location.origin) return;
-      if (e.data && e.data.type === 'gd_token') {
-        clearTimeout(timeout);
-        window.removeEventListener('message', onMsg);
-        accessToken = e.data.token;
-        localStorage.setItem('gd_token', accessToken);
-        localStorage.setItem('gd_token_exp', Date.now() + (e.data.expires - 60) * 1000);
-        resolve();
-      }
-    }
-    window.addEventListener('message', onMsg);
-
-    // Build silent auth URL (prompt=none tries without UI)
-    const state = base64url(crypto.getRandomValues(new Uint8Array(8)));
-    const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
-    url.searchParams.set('redirect_uri', redirectUri());
-    url.searchParams.set('response_type', 'token');
-    url.searchParams.set('scope', 'https://www.googleapis.com/auth/drive.file');
-    url.searchParams.set('state', state);
-    url.searchParams.set('prompt', 'none');  // silent – no UI shown
-    url.searchParams.set('login_hint', localStorage.getItem('gd_email') || '');
-
-    // Open in popup instead of iframe (more reliable)
-    const popup = window.open(url.toString(), 'gd_reauth', 'width=500,height=600');
-    if (!popup) {
-      clearTimeout(timeout);
-      window.removeEventListener('message', onMsg);
-      // Popup blocked – redirect to login
-      localStorage.removeItem('gd_token');
-      showLoginBtn('Sitzung abgelaufen – bitte neu anmelden');
-      reject(new Error('Popup blocked'));
-    }
-  });
+  // Implicit flow has no refresh tokens – clear and ask user to re-login
+  accessToken = null;
+  localStorage.removeItem('gd_token');
+  localStorage.removeItem('gd_token_exp');
+  throw new Error('TOKEN_EXPIRED');
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
@@ -756,6 +725,42 @@ function showLoginBtn(msg) {
   setMsg(msg || 'Bitte mit Google anmelden');
   document.getElementById('btn-login').style.display='block';
 }
+
+function showReloginBanner() {
+  // Remove existing banner if any
+  const existing = document.getElementById('relogin-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'relogin-banner';
+  banner.style.cssText = `
+    position:fixed;bottom:0;left:0;right:0;z-index:9999;
+    background:#1a3a5c;color:white;
+    padding:1rem 2rem;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 -4px 20px rgba(0,0,0,.3);
+    font-family:'DM Sans',sans-serif;
+  `;
+  banner.innerHTML = `
+    <div>
+      <strong style="font-size:.95rem">⚠ Sitzung abgelaufen</strong>
+      <span style="font-size:.85rem;opacity:.8;margin-left:.75rem">Bitte neu anmelden um weiter zu speichern. Deine Änderungen gehen nicht verloren.</span>
+    </div>
+    <button onclick="reloginAndContinue()" style="
+      padding:.55rem 1.4rem;border-radius:6px;border:none;
+      background:white;color:#1a3a5c;font-weight:700;
+      cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.9rem;
+      white-space:nowrap;margin-left:1rem;
+    ">🔐 Neu anmelden</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function reloginAndContinue() {
+  // Save current projects to sessionStorage so they survive the redirect
+  sessionStorage.setItem('pd_pending_projects', JSON.stringify(projects));
+  startLogin();
+}
 function showError(msg, hints) {
   document.getElementById('app-loading').style.display='none';
   document.getElementById('app-error').style.display='block';
@@ -779,11 +784,12 @@ function showTab(t) {
 
 // ── OVERVIEW ─────────────────────────────────────────────────
 const AL={
-  gruen:'Gestartet (on track)',
-  gelb:'Gestartet (leichte Verzögerung)',
-  rot:'Gestartet (verzögert)',
-  grau:'Nicht gestartet (wie geplant)',
-  blau:'Nicht gestartet (verzögert)'
+  gruen:  'Gestartet (on track)',
+  gelb:   'Gestartet (leichte Verzögerung)',
+  rot:    'Gestartet (verzögert)',
+  grau:   'Nicht gestartet (wie geplant)',
+  blau:   'Nicht gestartet (verzögert)',
+  orange: 'Abgeschlossen'
 };
 function ab(a){return `<span class="ampel ${a||'grau'}"><span class="adot"></span>${AL[a]||a}</span>`;}
 function curMs(p){
@@ -801,6 +807,7 @@ function updateStats() {
   document.getElementById('sv-rot').textContent = projects.filter(p=>p.ampel==='rot').length;
   document.getElementById('sv-grau').textContent = projects.filter(p=>p.ampel==='grau'||!p.ampel).length;
   document.getElementById('sv-blau').textContent = projects.filter(p=>p.ampel==='blau').length;
+  document.getElementById('sv-orange').textContent = projects.filter(p=>p.ampel==='orange').length;
   // Update leiter dropdown
   const leiterSel = document.getElementById('filter-leiter');
   if (leiterSel) {
@@ -816,7 +823,7 @@ function filterStatus(status) {
   const sel = document.getElementById('filter-status');
   if (sel) sel.value = status;
   // Highlight active card
-  ['gruen','gelb','rot','grau','blau','total'].forEach(k => {
+  ['gruen','gelb','rot','grau','blau','orange','total'].forEach(k => {
     const el = document.getElementById('sc-'+k);
     if (el) el.classList.toggle('active-filter', k === (status||'total') );
   });
@@ -832,7 +839,7 @@ function resetFilters() {
   if (fs) fs.value = '';
   if (fl) fl.value = '';
   if (ft) ft.value = '';
-  ['gruen','gelb','rot','grau','blau','total'].forEach(k => {
+  ['gruen','gelb','rot','grau','blau','orange','total'].forEach(k => {
     const el = document.getElementById('sc-'+k);
     if (el) el.classList.remove('active-filter');
   });
@@ -933,11 +940,12 @@ function renderCards(){
 
 // ── FORM ─────────────────────────────────────────────────────
 const AMPEL_STYLES = {
-  gruen: 'border-color:var(--green);background:var(--green-bg);color:var(--green)',
-  gelb:  'border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow)',
-  rot:   'border-color:var(--red);background:var(--red-bg);color:var(--red)',
-  grau:  'border-color:#999;background:#f0f0f0;color:#666',
-  blau:  'border-color:#1a56a0;background:#e8f0fe;color:#1a56a0'
+  gruen:  'border-color:var(--green);background:var(--green-bg);color:var(--green)',
+  gelb:   'border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow)',
+  rot:    'border-color:var(--red);background:var(--red-bg);color:var(--red)',
+  grau:   'border-color:#999;background:#f0f0f0;color:#666',
+  blau:   'border-color:#1a56a0;background:#e8f0fe;color:#1a56a0',
+  orange: 'border-color:var(--orange);background:var(--orange-bg);color:var(--orange)'
 };
 function pickAmpel(v){
   selAmpel=v;
@@ -1046,15 +1054,17 @@ setTimeout(() => {
   }
 }, 4000);
 
-// Proactively refresh token 10 min before expiry
-setInterval(async () => {
+// Warn user 5 min before token expires
+setInterval(() => {
   const exp = parseInt(localStorage.getItem('gd_token_exp') || '0');
-  if (accessToken && exp && (exp - Date.now()) < 10 * 60 * 1000) {
-    console.log('[PD] Token läuft bald ab – erneuere...');
-    try { await tryRefresh(); console.log('[PD] Token erneuert'); }
-    catch(e) { console.warn('[PD] Silent refresh fehlgeschlagen:', e.message); }
+  if (accessToken && exp) {
+    const remaining = exp - Date.now();
+    if (remaining > 0 && remaining < 5 * 60 * 1000) {
+      const mins = Math.ceil(remaining / 60000);
+      syncUI('busy', `Sitzung läuft in ${mins} Min. ab`);
+    }
   }
-}, 5 * 60 * 1000);  // check every 5 minutes
+}, 60 * 1000);  // check every minute
 
 boot();
 </script>
