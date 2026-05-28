@@ -9,7 +9,8 @@
   :root {
     --bg:#f0efeb;--surface:#fff;--surface2:#f7f6f2;--border:#e2e0d8;
     --text:#1a1917;--text-muted:#6b6860;--accent:#1a3a5c;--accent2:#2d5f8a;
-    --green:#2a7a4b;--green-bg:#e8f5ee;--yellow:#b87d00;--yellow-bg:#fdf3dc;
+    --green:#2a7a4b;--green-bg:#e8f5ee;
+    --yellow:#b87d00;--yellow-bg:#fdf3dc;
     --red:#c0392b;--red-bg:#fdecea;
     --orange:#c25e00;--orange-bg:#fdeede;
     --shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 32px rgba(0,0,0,.1);
@@ -17,19 +18,16 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
+  /* LOADING */
   #app-loading{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:9999;}
   #app-loading h2{font-family:'DM Serif Display',serif;color:white;font-size:1.6rem;}
   #app-loading p{color:rgba(255,255,255,.75);font-size:.9rem;text-align:center;max-width:320px;}
   .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
-  #btn-login{display:none;margin-top:1.5rem;padding:.8rem 2rem;border-radius:8px;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.15);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s;}
+  #btn-login{display:none;margin-top:1rem;padding:.8rem 2rem;border-radius:8px;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.15);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;}
   #btn-login:hover{background:rgba(255,255,255,.28);}
 
-  #app-error{display:none;max-width:540px;margin:3rem auto;background:white;border-radius:12px;padding:2rem;box-shadow:var(--shadow-lg);}
-  #app-error h3{color:var(--red);margin-bottom:.75rem;}
-  #app-error p,#app-error li{font-size:.88rem;color:var(--text-muted);line-height:1.7;}
-  #app-error ol{padding-left:1.2rem;margin-top:.5rem;}
-
+  /* MAIN */
   #app-main{display:none;}
   header{background:var(--accent);color:white;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
   header h1{font-family:'DM Serif Display',serif;font-size:1.25rem;}
@@ -50,6 +48,7 @@
 
   main{max-width:1400px;margin:0 auto;padding:2rem;}
 
+  /* AMPEL */
   .ampel{display:inline-flex;align-items:center;gap:.4rem;padding:.28rem .65rem;border-radius:20px;font-size:.78rem;font-weight:600;}
   .adot{width:8px;height:8px;border-radius:50%;}
   .ampel.gruen{background:var(--green-bg);color:var(--green);}.ampel.gruen .adot{background:var(--green);}
@@ -62,7 +61,8 @@
   .pbar{background:var(--border);border-radius:4px;height:7px;overflow:hidden;}
   .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
 
-  .scard{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.5rem .9rem;box-shadow:var(--shadow);transition:box-shadow .15s,transform .1s;display:flex;align-items:center;gap:.75rem;}
+  /* STATS */
+  .scard{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.5rem .9rem;box-shadow:var(--shadow);transition:box-shadow .15s,transform .1s;display:flex;align-items:center;gap:.75rem;cursor:pointer;}
   .scard:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px);}
   .scard.active-filter{box-shadow:0 0 0 2px var(--accent);}
   .scard-total{padding:.55rem 1rem;}
@@ -72,9 +72,11 @@
   .scard-total .sval{font-size:1.8rem;}
   .sval.blue{color:var(--accent);}.sval.green{color:var(--green);}.sval.yellow{color:var(--yellow);}.sval.red{color:var(--red);}
 
+  /* TABLE */
   .twrap{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);}
   table{width:100%;border-collapse:collapse;}
-  th{background:var(--surface2);padding:.8rem 1rem;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border);}
+  th{background:var(--surface2);padding:.8rem 1rem;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+  th:hover{color:var(--accent);}
   td{padding:.85rem 1rem;font-size:.88rem;border-bottom:1px solid var(--border);vertical-align:middle;}
   tr:last-child td{border-bottom:none;}tr:hover td{background:#f8f7f3;}
   .pname{font-weight:600;color:var(--accent);}
@@ -85,6 +87,7 @@
   .bsm:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent);}
   .bsm.del:hover{background:var(--red-bg);color:var(--red);border-color:var(--red);}
 
+  /* CARDS */
   .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem;}
   .pcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .15s;}
   .pcard:hover{box-shadow:var(--shadow-lg);}
@@ -106,6 +109,7 @@
   .rtag{display:inline-block;background:var(--red-bg);color:var(--red);font-size:.73rem;padding:.18rem .45rem;border-radius:4px;margin:.18rem .18rem .18rem 0;line-height:1.4;}
   .cardf{padding:.7rem 1.2rem;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:.5rem;justify-content:flex-end;}
 
+  /* FORM */
   .fwrap{max-width:800px;margin:0 auto;}
   .fcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:1.6rem;margin-bottom:1.2rem;}
   .fcard h3{font-size:.77rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:1rem;padding-bottom:.55rem;border-bottom:2px solid var(--border);}
@@ -113,23 +117,21 @@
   .frow.s1{grid-template-columns:1fr;}
   .fg{display:flex;flex-direction:column;gap:.32rem;}
   .fg label{font-size:.78rem;font-weight:600;color:var(--text-muted);}
-  input[type=text],input[type=number],textarea,select{padding:.52rem .75rem;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:white;color:var(--text);transition:border-color .15s,box-shadow .15s;width:100%;}
+  input[type=text],input[type=number],textarea,select{padding:.52rem .75rem;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:white;color:var(--text);transition:border-color .15s;width:100%;}
   input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,58,92,.1);}
   textarea{resize:vertical;min-height:76px;}
-  .asel{display:flex;gap:.5rem;}
-  .aopt{flex:1;padding:.52rem;text-align:center;border:2px solid var(--border);border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .15s;}
+  .asel{display:flex;gap:.5rem;flex-wrap:wrap;}
+  .aopt{flex:1;min-width:140px;padding:.52rem;text-align:center;border:2px solid var(--border);border-radius:7px;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .15s;}
   .aopt:hover{border-color:#aaa;}
-  .aopt.sg{border-color:var(--green);background:var(--green-bg);color:var(--green);}
-  .aopt.sy{border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow);}
-  .aopt.sr{border-color:var(--red);background:var(--red-bg);color:var(--red);}
   .msed{display:flex;flex-direction:column;gap:.55rem;}
   .msr{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr auto;gap:.45rem;align-items:center;}
-  .brm{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.1rem;padding:0 .3rem;line-height:1;transition:color .1s;}
+  .brm{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.1rem;padding:0 .3rem;line-height:1;}
   .brm:hover{color:var(--red);}
-  .bams{background:var(--surface2);border:1px dashed var(--border);color:var(--accent);padding:.48rem 1rem;border-radius:7px;cursor:pointer;font-size:.83rem;font-weight:500;width:100%;text-align:center;font-family:'DM Sans',sans-serif;transition:background .12s;margin-top:.3rem;}
+  .bams{background:var(--surface2);border:1px dashed var(--border);color:var(--accent);padding:.48rem 1rem;border-radius:7px;cursor:pointer;font-size:.83rem;font-weight:500;width:100%;text-align:center;font-family:'DM Sans',sans-serif;margin-top:.3rem;}
   .bams:hover{background:#e8f0f8;}
   .facts{display:flex;gap:.7rem;justify-content:flex-end;margin-top:.5rem;}
 
+  /* MODAL */
   .moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;}
   .moverlay.open{display:flex;}
   .modal{background:white;border-radius:12px;padding:1.6rem;max-width:400px;width:90%;box-shadow:var(--shadow-lg);}
@@ -140,9 +142,11 @@
   #toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--accent);color:white;padding:.75rem 1.3rem;border-radius:8px;font-size:.88rem;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transform:translateY(8px);transition:all .22s;pointer-events:none;z-index:999;}
   #toast.show{opacity:1;transform:translateY(0);}
 
+  #relogin-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9998;background:#1a3a5c;color:white;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,.3);font-family:'DM Sans',sans-serif;}
+  #relogin-banner.show{display:flex;}
+
   @media(max-width:700px){
-    .frow,.stats{grid-template-columns:1fr 1fr;}
-    .frow.s1{grid-template-columns:1fr;}
+    .frow{grid-template-columns:1fr;}
     .msr{grid-template-columns:1fr 1fr;}
     .cgrid{grid-template-columns:1fr;}
     main{padding:1rem;}
@@ -154,119 +158,62 @@
 <div id="app-loading">
   <div class="spinner" id="spinner"></div>
   <h2>Projekt-Dashboard</h2>
-  <p id="load-msg">Initialisiere...</p>
-  <div id="login-area" style="margin-top:2rem;text-align:center">
-    <button id="btn-login" onclick="startLogin()" style="
-      display:block;
-      padding:1rem 2.5rem;
-      font-size:1.1rem;
-      font-weight:700;
-      background:white;
-      color:#1a3a5c;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-      box-shadow:0 4px 16px rgba(0,0,0,.2);
-      margin:0 auto;
-    ">🔐 Mit Google anmelden</button>
-    <p id="login-sub" style="margin-top:.75rem;font-size:.8rem;opacity:.6"></p>
-  </div>
-  <div id="debug-area" style="margin-top:2rem;max-width:400px;background:rgba(0,0,0,.3);border-radius:8px;padding:1rem;font-size:.75rem;font-family:monospace;color:#adf;text-align:left;display:none"></div>
-</div>
-
-<div id="app-error">
-  <h3>⚠ Verbindungsfehler</h3>
-  <p id="err-msg"></p>
-  <ol id="err-hints"></ol>
-  <br>
-  <button class="btn btn-acc" onclick="location.reload()">↻ Neu laden</button>
+  <p id="load-msg">Verbinde mit Google...</p>
+  <button id="btn-login" onclick="startLogin()">🔐 Mit Google anmelden</button>
 </div>
 
 <div id="app-main">
   <header>
     <h1>📊 Projekt-Dashboard</h1>
     <div style="display:flex;align-items:center;gap:.9rem">
-      <div class="sync-pill">
-        <div class="sdot" id="sdot"></div>
-        <span id="slabel">Verbinde...</span>
-      </div>
+      <div class="sync-pill"><div class="sdot" id="sdot"></div><span id="slabel">...</span></div>
       <div class="hbtns">
         <button class="btn btn-ghost" onclick="forceSave()">↻ Speichern</button>
         <button class="btn btn-pri" onclick="showTab('form');newProject()">+ Neues Projekt</button>
       </div>
     </div>
   </header>
-
   <nav>
     <div class="tab active" data-tab="overview" onclick="showTab('overview')">Gesamtübersicht</div>
     <div class="tab" data-tab="steckbrief" onclick="showTab('steckbrief')">Steckbriefe</div>
     <div class="tab" data-tab="form" onclick="showTab('form')">Erfassung</div>
   </nav>
-
   <main>
     <div id="view-overview">
-      <div id="stats-area" style="margin-bottom:1.25rem">
-        <!-- Row 1: Gesamt -->
+      <div style="margin-bottom:1.25rem">
         <div style="display:grid;grid-template-columns:1fr;gap:.45rem;margin-bottom:.45rem">
-          <div class="scard scard-total" id="sc-total" onclick="filterStatus('')" style="cursor:pointer">
-            <div class="scard-inner">
-              <div class="slabel">Projekte gesamt</div>
-              <div class="sval blue" id="sv-total">0</div>
-            </div>
+          <div class="scard scard-total" id="sc-total" onclick="filterAmpel('')">
+            <div class="scard-inner"><div class="slabel">Projekte gesamt</div><div class="sval blue" id="sv-total">0</div></div>
           </div>
         </div>
-        <!-- Row 2: Grün, Gelb, Rot -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.45rem">
-          <div class="scard" id="sc-gruen" onclick="filterStatus('gruen')" style="cursor:pointer;border-left:3px solid var(--green)">
-            <div class="scard-inner">
-              <div class="slabel" style="color:var(--green)">🟢 Gestartet (on track)</div>
-              <div class="sval green" id="sv-gruen">0</div>
-            </div>
+          <div class="scard" id="sc-gruen" onclick="filterAmpel('gruen')" style="border-left:3px solid var(--green)">
+            <div class="scard-inner"><div class="slabel" style="color:var(--green)">🟢 Gestartet (on track)</div><div class="sval green" id="sv-gruen">0</div></div>
           </div>
-          <div class="scard" id="sc-gelb" onclick="filterStatus('gelb')" style="cursor:pointer;border-left:3px solid #f0a800">
-            <div class="scard-inner">
-              <div class="slabel" style="color:var(--yellow)">🟡 Leichte Verzögerung</div>
-              <div class="sval yellow" id="sv-gelb">0</div>
-            </div>
+          <div class="scard" id="sc-gelb" onclick="filterAmpel('gelb')" style="border-left:3px solid #f0a800">
+            <div class="scard-inner"><div class="slabel" style="color:var(--yellow)">🟡 Leichte Verzögerung</div><div class="sval yellow" id="sv-gelb">0</div></div>
           </div>
-          <div class="scard" id="sc-rot" onclick="filterStatus('rot')" style="cursor:pointer;border-left:3px solid var(--red)">
-            <div class="scard-inner">
-              <div class="slabel" style="color:var(--red)">🔴 Verzögert</div>
-              <div class="sval red" id="sv-rot">0</div>
-            </div>
+          <div class="scard" id="sc-rot" onclick="filterAmpel('rot')" style="border-left:3px solid var(--red)">
+            <div class="scard-inner"><div class="slabel" style="color:var(--red)">🔴 Verzögert</div><div class="sval red" id="sv-rot">0</div></div>
           </div>
         </div>
-        <!-- Row 3: Grau, Blau, Orange -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">
-          <div class="scard" id="sc-grau" onclick="filterStatus('grau')" style="cursor:pointer;border-left:3px solid #999">
-            <div class="scard-inner">
-              <div class="slabel" style="color:#666">⚪ Nicht gestartet (wie geplant)</div>
-              <div class="sval" style="color:#666" id="sv-grau">0</div>
-            </div>
+          <div class="scard" id="sc-grau" onclick="filterAmpel('grau')" style="border-left:3px solid #999">
+            <div class="scard-inner"><div class="slabel" style="color:#666">⚪ Nicht gestartet (wie geplant)</div><div class="sval" style="color:#666" id="sv-grau">0</div></div>
           </div>
-          <div class="scard" id="sc-blau" onclick="filterStatus('blau')" style="cursor:pointer;border-left:3px solid #1a56a0">
-            <div class="scard-inner">
-              <div class="slabel" style="color:#1a56a0">🔵 Nicht gestartet (verzögert)</div>
-              <div class="sval" style="color:#1a56a0" id="sv-blau">0</div>
-            </div>
+          <div class="scard" id="sc-blau" onclick="filterAmpel('blau')" style="border-left:3px solid #1a56a0">
+            <div class="scard-inner"><div class="slabel" style="color:#1a56a0">🔵 Nicht gestartet (verzögert)</div><div class="sval" style="color:#1a56a0" id="sv-blau">0</div></div>
           </div>
-          <div class="scard" id="sc-orange" onclick="filterStatus('orange')" style="cursor:pointer;border-left:3px solid var(--orange)">
-            <div class="scard-inner">
-              <div class="slabel" style="color:var(--orange)">🟠 Abgeschlossen</div>
-              <div class="sval" style="color:var(--orange)" id="sv-orange">0</div>
-            </div>
+          <div class="scard" id="sc-orange" onclick="filterAmpel('orange')" style="border-left:3px solid var(--orange)">
+            <div class="scard-inner"><div class="slabel" style="color:var(--orange)">🟠 Abgeschlossen</div><div class="sval" style="color:var(--orange)" id="sv-orange">0</div></div>
           </div>
         </div>
       </div>
-
-      <!-- Filter bar -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Alle Projekte</h2>
         <div style="display:flex;gap:.5rem;align-items:center">
-          <input type="text" id="filter-search" placeholder="🔍 Suche..." oninput="applyFilters()"
-            style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;width:160px">
-          <select id="filter-status" onchange="applyFilters()"
-            style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white">
+          <input type="text" id="filter-search" placeholder="🔍 Suche..." oninput="applyFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;width:160px">
+          <select id="filter-ampel" onchange="applyFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white">
             <option value="">Alle Status</option>
             <option value="gruen">🟢 Gestartet (on track)</option>
             <option value="gelb">🟡 Leichte Verzögerung</option>
@@ -275,17 +222,16 @@
             <option value="blau">🔵 Nicht gestartet (verzögert)</option>
             <option value="orange">🟠 Abgeschlossen</option>
           </select>
-          <select id="filter-leiter" style="display:none"></select>
           <button onclick="resetFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white;cursor:pointer;color:var(--text-muted)">✕ Reset</button>
         </div>
       </div>
       <div class="twrap"><table>
         <thead><tr>
-          <th style="cursor:pointer" onclick="sortBy('name')">Projektname <span id="sort-name"></span></th>
-          <th style="cursor:pointer" onclick="sortBy('ampel')">Projektstatus <span id="sort-ampel"></span></th>
-          <th style="cursor:pointer" onclick="sortBy('fortschritt')">Fortschritt <span id="sort-fortschritt"></span></th>
+          <th onclick="sortBy('name')">Projektname <span id="sort-name"></span></th>
+          <th onclick="sortBy('ampel')">Projektstatus <span id="sort-ampel"></span></th>
+          <th onclick="sortBy('fortschritt')">Fortschritt <span id="sort-fortschritt"></span></th>
           <th>Akt. Meilenstein</th>
-          <th style="cursor:pointer" onclick="sortBy('leiter')">Projektleiter <span id="sort-leiter"></span></th>
+          <th onclick="sortBy('leiter')">Projektleiter <span id="sort-leiter"></span></th>
           <th>PL Fachbereich</th>
           <th>Anmerkungen</th>
           <th></th>
@@ -295,9 +241,7 @@
     </div>
 
     <div id="view-steckbrief" style="display:none">
-      <div style="margin-bottom:1.25rem">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Projektsteckbriefe</h2>
-      </div>
+      <div style="margin-bottom:1.25rem"><h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Projektsteckbriefe</h2></div>
       <div class="cgrid" id="cgrid"></div>
     </div>
 
@@ -312,7 +256,7 @@
             <div class="fg"><label>Projektleiter</label><input type="text" id="f-leiter"></div>
           </div>
           <div class="frow">
-            <div class="fg"><label>PL Fachbereich</label><input type="text" id="f-pl-fachbereich" placeholder="z.B. Dr. Müller"></div>
+            <div class="fg"><label>PL Fachbereich</label><input type="text" id="f-plFachbereich"></div>
             <div class="fg"><label>Sponsor</label><input type="text" id="f-sponsor"></div>
           </div>
           <div class="frow">
@@ -326,25 +270,22 @@
           <h3>Status & Budget</h3>
           <div class="frow">
             <div class="fg"><label>Projektstatus</label>
-              <select id="f-status">
-                <option>In Vorbereitung</option><option>In Bearbeitung</option>
-                <option>Abgeschlossen</option><option>On Hold</option>
-              </select>
+              <select id="f-status"><option>In Vorbereitung</option><option>In Bearbeitung</option><option>Abgeschlossen</option><option>On Hold</option></select>
             </div>
             <div class="fg"><label>Gesamtfortschritt (%)</label><input type="number" id="f-fortschritt" min="0" max="100" value="0"></div>
           </div>
           <div class="frow">
-            <div class="fg"><label>Budget (Geplant)</label><input type="text" id="f-bplan"></div>
-            <div class="fg"><label>Budget (IST)</label><input type="text" id="f-bist"></div>
+            <div class="fg"><label>Budget (Geplant)</label><input type="text" id="f-budgetPlan"></div>
+            <div class="fg"><label>Budget (IST)</label><input type="text" id="f-budgetIst"></div>
           </div>
-          <div class="fg" style="margin-top:.5rem"><label>Projektstatus</label>
-            <div class="asel" style="flex-wrap:wrap;gap:.4rem">
-              <div class="aopt" data-v="gruen" onclick="pickAmpel('gruen')" style="font-size:.75rem;flex:1;min-width:120px">🟢 Gestartet (on track)</div>
-              <div class="aopt" data-v="gelb" onclick="pickAmpel('gelb')" style="font-size:.75rem;flex:1;min-width:120px">🟡 Gestartet (leichte Verzögerung)</div>
-              <div class="aopt" data-v="rot" onclick="pickAmpel('rot')" style="font-size:.75rem;flex:1;min-width:120px">🔴 Gestartet (verzögert)</div>
-              <div class="aopt" data-v="grau" onclick="pickAmpel('grau')" style="font-size:.75rem;flex:1;min-width:120px">⚪ Nicht gestartet (wie geplant)</div>
-              <div class="aopt" data-v="blau" onclick="pickAmpel('blau')" style="font-size:.75rem;flex:1;min-width:120px">🔵 Nicht gestartet (verzögert)</div>
-              <div class="aopt" data-v="orange" onclick="pickAmpel('orange')" style="font-size:.75rem;flex:1;min-width:120px">🟠 Abgeschlossen</div>
+          <div class="fg" style="margin-top:.5rem"><label>Projektstatus (Ampel)</label>
+            <div class="asel" id="asel">
+              <div class="aopt" data-v="gruen" onclick="pickAmpel('gruen')">🟢 Gestartet (on track)</div>
+              <div class="aopt" data-v="gelb" onclick="pickAmpel('gelb')">🟡 Leichte Verzögerung</div>
+              <div class="aopt" data-v="rot" onclick="pickAmpel('rot')">🔴 Verzögert</div>
+              <div class="aopt" data-v="grau" onclick="pickAmpel('grau')">⚪ Nicht gestartet (wie geplant)</div>
+              <div class="aopt" data-v="blau" onclick="pickAmpel('blau')">🔵 Nicht gestartet (verzögert)</div>
+              <div class="aopt" data-v="orange" onclick="pickAmpel('orange')">🟠 Abgeschlossen</div>
             </div>
           </div>
         </div>
@@ -380,518 +321,408 @@
   </div>
 </div>
 
-<script>
-// ╔══════════════════════════════════════════════════════════╗
-// ║  KONFIGURATION                                          ║
-// ╚══════════════════════════════════════════════════════════╝
-const GOOGLE_CLIENT_ID = '774152345964-7ajii30piquipu47vcatg30s1hun3qki.apps.googleusercontent.com';
-const DRIVE_FOLDER_NAME = 'Projektdaten';   // Google Drive Ordner
-const FILE_NAME = 'projekt-dashboard.json';
-// ═══════════════════════════════════════════════════════════
+<div id="relogin-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9998;background:#1a3a5c;color:white;padding:1rem 2rem;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,.3);">
+  <div>
+    <strong>⚠ Sitzung abgelaufen</strong>
+    <span style="font-size:.85rem;opacity:.8;margin-left:.75rem">Bitte neu anmelden. Deine Änderungen gehen nicht verloren.</span>
+  </div>
+  <button onclick="reloginAndContinue()" style="padding:.55rem 1.4rem;border-radius:6px;border:none;background:white;color:#1a3a5c;font-weight:700;cursor:pointer;margin-left:1rem;white-space:nowrap;">🔐 Neu anmelden</button>
+</div>
 
-const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
+<script>
+// ════════════════════════════════════════════════
+// KONFIGURATION
+// ════════════════════════════════════════════════
+const GOOGLE_CLIENT_ID = '774152345964-7ajii30piquipu47vcatg30s1hun3qki.apps.googleusercontent.com';
+const DRIVE_FOLDER_NAME = 'Projektdaten';
+const FILE_NAME = 'projekt-dashboard.json';
+const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
+// ════════════════════════════════════════════════
+// GLOBAL STATE
+// ════════════════════════════════════════════════
 let accessToken = null;
+let tokenExpiry = 0;
+let folderId = null;
 let fileId = null;
-let _folderId = null;
 let projects = [];
 let selAmpel = 'gruen';
 let delId = null;
+let sortCol = '';
+let sortDir = 1;
 
-// ── Google OAuth2 PKCE ───────────────────────────────────────
-function base64url(buf) {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
-    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-}
-function genVerifier() {
-  const a = new Uint8Array(32); crypto.getRandomValues(a); return base64url(a);
-}
-async function genChallenge(v) {
-  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
-  return base64url(h);
-}
+// ════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════
 function redirectUri() {
   return window.location.origin + window.location.pathname;
 }
 
-async function startLogin() {
-  dbg('startLogin() – Implicit Flow');
-  dbg('redirectUri: ' + redirectUri());
-  document.getElementById('btn-login').textContent = '⏳ Weiterleitung zu Google...';
-  document.getElementById('btn-login').disabled = true;
+function b64url(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
 
-  const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
+function startLogin() {
+  const state = b64url(crypto.getRandomValues(new Uint8Array(16)));
   sessionStorage.setItem('gd_state', state);
-
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
   url.searchParams.set('redirect_uri', redirectUri());
-  url.searchParams.set('response_type', 'token');  // implicit – kein Secret nötig
-  url.searchParams.set('scope', 'https://www.googleapis.com/auth/drive.file');
+  url.searchParams.set('response_type', 'token');
+  url.searchParams.set('scope', SCOPE);
   url.searchParams.set('state', state);
   url.searchParams.set('prompt', 'consent');
-  dbg('Leite weiter zu Google...');
   window.location.href = url.toString();
 }
 
-async function exchangeCode(code) {
-  const verifier = sessionStorage.getItem('gd_verifier');
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {'Content-Type':'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({
-      code,
-      client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: redirectUri(),
-      grant_type: 'authorization_code',
-      code_verifier: verifier
-    })
-  });
-  const data = await res.json();
-  if (!data.access_token) throw new Error(data.error_description || 'Token-Fehler');
-  return data;
+function reloginAndContinue() {
+  sessionStorage.setItem('pd_pending', JSON.stringify(projects));
+  startLogin();
 }
 
-async function refreshToken(refresh) {
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {'Content-Type':'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({
-      refresh_token: refresh,
-      client_id: GOOGLE_CLIENT_ID,
-      grant_type: 'refresh_token'
-    })
-  });
-  const data = await res.json();
-  if (!data.access_token) throw new Error('Refresh fehlgeschlagen');
-  return data.access_token;
-}
-
-// ── Google Drive API ─────────────────────────────────────────
-async function gdReq(url, opts={}, timeoutMs=12000) {
-  opts.headers = opts.headers || {};
-  opts.headers['Authorization'] = 'Bearer ' + accessToken;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const r = await fetch(url, { ...opts, signal: controller.signal });
-    clearTimeout(timer);
-    if (r.status === 401) throw new Error('AUTH_EXPIRED');
-    if (r.status === 404) throw new Error('404');
-    return r;
-  } catch(e) {
-    clearTimeout(timer);
-    if (e.name === 'AbortError') throw new Error('Timeout – Google Drive antwortet nicht');
-    throw e;
+function checkTokenExpiry() {
+  if (!accessToken) return;
+  const remaining = tokenExpiry - Date.now();
+  if (remaining < 5 * 60 * 1000 && remaining > 0) {
+    const mins = Math.ceil(remaining / 60000);
+    syncUI('busy', `Sitzung läuft in ${mins} Min. ab`);
   }
 }
+setInterval(checkTokenExpiry, 60000);
 
-async function findOrCreateFolder() {
-  // Search for folder
-  const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-  const r = await gdReq(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
-  const data = await r.json();
-  if (data.files && data.files.length > 0) return data.files[0].id;
-  // Create folder
-  const cr = await gdReq('https://www.googleapis.com/drive/v3/files', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-  });
-  const folder = await cr.json();
-  return folder.id;
+// ════════════════════════════════════════════════
+// GOOGLE DRIVE API
+// ════════════════════════════════════════════════
+async function gdFetch(url, opts = {}) {
+  if (!accessToken) throw new Error('NOT_AUTHED');
+  opts.headers = { ...(opts.headers || {}), Authorization: 'Bearer ' + accessToken };
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), 15000);
+  let r;
+  try {
+    r = await fetch(url, { ...opts, signal: controller.signal });
+  } catch(e) {
+    clearTimeout(t);
+    if (e.name === 'AbortError') throw new Error('Timeout');
+    throw e;
+  }
+  clearTimeout(t);
+  if (r.status === 401) throw new Error('AUTH_EXPIRED');
+  return r;
 }
 
-async function findFile(folderId) {
-  const q = encodeURIComponent(`name='${FILE_NAME}' and '${folderId}' in parents and trashed=false`);
-  const r = await gdReq(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
-  const data = await r.json();
-  return (data.files && data.files.length > 0) ? data.files[0].id : null;
+async function getFolderId() {
+  if (folderId) return folderId;
+  const cached = localStorage.getItem('gd_fid');
+  if (cached) { folderId = cached; return folderId; }
+  const q = `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const r = await gdFetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+  const d = await r.json();
+  if (d.files && d.files.length > 0) {
+    folderId = d.files[0].id;
+  } else {
+    const cr = await gdFetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder'})
+    });
+    folderId = (await cr.json()).id;
+  }
+  localStorage.setItem('gd_fid', folderId);
+  return folderId;
 }
 
-async function readFile(fId) {
-  const r = await gdReq(`https://www.googleapis.com/drive/v3/files/${fId}?alt=media`);
+async function getFileId(fid) {
+  if (fileId) return fileId;
+  const cached = localStorage.getItem('gd_fileid');
+  if (cached) { fileId = cached; return fileId; }
+  const q = `name='${FILE_NAME}' and '${fid}' in parents and trashed=false`;
+  const r = await gdFetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+  const d = await r.json();
+  if (d.files && d.files.length > 0) {
+    fileId = d.files[0].id;
+    localStorage.setItem('gd_fileid', fileId);
+  }
+  return fileId || null;
+}
+
+async function readDrive() {
+  const fid = await getFolderId();
+  const fi = await getFileId(fid);
+  if (!fi) return null;
+  const r = await gdFetch(`https://www.googleapis.com/drive/v3/files/${fi}?alt=media`);
   return r.json();
 }
 
-async function writeFile(folderId, fId, data) {
+async function writeDrive(data) {
+  const fid = await getFolderId();
+  const fi = await getFileId(fid);
   const content = JSON.stringify(data, null, 2);
-  const blob = new Blob([content], {type:'application/json'});
-  if (fId) {
-    // Update existing
-    await gdReq(`https://www.googleapis.com/upload/drive/v3/files/${fId}?uploadType=media`, {
-      method: 'PATCH',
-      headers: {'Content-Type':'application/json'},
-      body: content
+  if (fi) {
+    await gdFetch(`https://www.googleapis.com/upload/drive/v3/files/${fi}?uploadType=media`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'}, body: content
     });
   } else {
-    // Create new with multipart
-    const meta = JSON.stringify({name: FILE_NAME, parents: [folderId]});
-    const boundary = 'pd_boundary_xyz';
+    const boundary = 'pd_xyz';
+    const meta = JSON.stringify({name: FILE_NAME, parents: [fid]});
     const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
-    const r = await gdReq(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id`, {
-      method: 'POST',
-      headers: {'Content-Type': `multipart/related; boundary=${boundary}`},
-      body
+    const r = await gdFetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id`, {
+      method: 'POST', headers: {'Content-Type': `multipart/related; boundary=${boundary}`}, body
     });
-    const created = await r.json();
-    fileId = created.id;
+    fileId = (await r.json()).id;
+    localStorage.setItem('gd_fileid', fileId);
   }
 }
 
-// ── SYNC UI ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════
+// SYNC
+// ════════════════════════════════════════════════
 function syncUI(state, label) {
   const d = document.getElementById('sdot');
   const l = document.getElementById('slabel');
-  if(d) d.className = 'sdot ' + (state==='ok'?'ok':state==='busy'?'busy':state==='err'?'err':'');
-  if(l) l.textContent = label;
+  if (d) d.className = 'sdot ' + (state === 'ok' ? 'ok' : state === 'busy' ? 'busy' : state === 'err' ? 'err' : '');
+  if (l) l.textContent = label || '';
 }
 
-// Debounce: avoid multiple rapid saves
-let _saveTimer = null;
-function scheduleSave() {
-  if (_saveTimer) clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => autosave(), 400);
-}
-
-async function autosave(retryCount=0) {
-  if (!accessToken) return;
-  syncUI('busy', retryCount > 0 ? 'Erneuter Versuch...' : 'Speichere...');
+async function save() {
+  if (!accessToken) { showReloginBanner(); return; }
+  syncUI('busy', 'Speichere...');
   try {
-    const folderId = _folderId || await findOrCreateFolder();
-    await writeFile(folderId, fileId, projects);
-    syncUI('ok','Gespeichert ✓');
+    await writeDrive(projects);
+    syncUI('ok', 'Gespeichert ✓');
   } catch(e) {
-    console.error('autosave error:', e.message);
-    if (e.message === 'AUTH_EXPIRED' || e.message === 'TOKEN_EXPIRED' || (e.message && e.message.includes('401'))) {
+    if (e.message === 'AUTH_EXPIRED' || e.message === 'NOT_AUTHED') {
       accessToken = null;
-      localStorage.removeItem('gd_token');
-      localStorage.removeItem('gd_token_exp');
       syncUI('err', 'Sitzung abgelaufen');
-      // Show re-login overlay on top of current app
       showReloginBanner();
-      return;
+    } else if (e.message === 'Timeout') {
+      syncUI('err', 'Timeout');
+      toast('Timeout – bitte nochmal speichern');
+    } else {
+      // Clear cached IDs and retry once
+      folderId = null; fileId = null;
+      localStorage.removeItem('gd_fid'); localStorage.removeItem('gd_fileid');
+      syncUI('busy', 'Erneuter Versuch...');
+      try {
+        await writeDrive(projects);
+        syncUI('ok', 'Gespeichert ✓');
+      } catch(e2) {
+        syncUI('err', 'Fehler');
+        toast('Fehler: ' + e2.message);
+      }
     }
-    if (e.message === '404' || (e.message && e.message.includes('404'))) {
-      fileId = null; _folderId = null;
-      localStorage.removeItem('gd_file_id');
-      localStorage.removeItem('gd_folder_id');
-      if (retryCount < 2) { await autosave(retryCount + 1); return; }
-    }
-    if (e.message && e.message.includes('Timeout') && retryCount < 2) {
-      syncUI('busy', 'Timeout – erneut...');
-      await new Promise(r => setTimeout(r, 1500));
-      await autosave(retryCount + 1);
-      return;
-    }
-    syncUI('err','Fehler');
-    toast('Speicherfehler: ' + e.message);
   }
 }
 
-async function forceSave() { await autosave(); toast('In Google Drive gespeichert ✓'); }
+async function forceSave() { await save(); if (document.getElementById('sdot').className.includes('ok')) toast('In Google Drive gespeichert ✓'); }
 
-async function tryRefresh() {
-  // Implicit flow has no refresh tokens – clear and ask user to re-login
-  accessToken = null;
-  localStorage.removeItem('gd_token');
-  localStorage.removeItem('gd_token_exp');
-  throw new Error('TOKEN_EXPIRED');
+function showReloginBanner() {
+  document.getElementById('relogin-banner').style.display = 'flex';
 }
 
-// ── BOOT ─────────────────────────────────────────────────────
-function dbg(msg) {
-  console.log('[PD]', msg);
-  const el = document.getElementById('debug-area');
-  if (el) { el.style.display='block'; el.innerHTML += msg + '<br>'; }
-}
-
+// ════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════
 async function boot() {
-  dbg('boot() gestartet');
-  setMsg('Initialisiere...');
+  setMsg('Verbinde mit Google...');
 
-  // Check for implicit flow token in URL hash
+  // Handle OAuth redirect (token in hash)
   const hash = new URLSearchParams(window.location.hash.substring(1));
   const hashToken = hash.get('access_token');
-  const hashExpires = hash.get('expires_in');
-  dbg('Hash token: ' + (hashToken ? 'JA' : 'NEIN'));
+  const hashExpires = parseInt(hash.get('expires_in') || '3600');
+  const hashState = hash.get('state');
 
-  if (hashToken) {
-    dbg('Token aus Hash erhalten');
+  if (hashToken && hashState === sessionStorage.getItem('gd_state')) {
     accessToken = hashToken;
-    const exp = (parseInt(hashExpires)||3600);
+    tokenExpiry = Date.now() + (hashExpires - 60) * 1000;
     localStorage.setItem('gd_token', accessToken);
-    localStorage.setItem('gd_token_exp', Date.now() + (exp - 60) * 1000);
+    localStorage.setItem('gd_token_exp', tokenExpiry);
     sessionStorage.removeItem('gd_state');
     window.history.replaceState({}, '', redirectUri());
-    // If this is a popup re-auth, post message to opener and close
-    if (window.opener && !window.opener.closed) {
-      window.opener.postMessage({ type: 'gd_token', token: accessToken, expires: exp }, window.location.origin);
-      window.close();
-      return;
-    }
-    await loadData();
-    return;
-  }
-
-  // Also check query params (some browsers)
-  const params = new URLSearchParams(window.location.search);
-  const qToken = params.get('access_token');
-  if (qToken) {
-    dbg('Token aus Query-Params');
-    accessToken = qToken;
-    localStorage.setItem('gd_token', accessToken);
-    localStorage.setItem('gd_token_exp', Date.now() + 3500*1000);
-    window.history.replaceState({}, '', redirectUri());
-    if (window.opener && !window.opener.closed) {
-      window.opener.postMessage({ type: 'gd_token', token: accessToken, expires: 3500 }, window.location.origin);
-      window.close();
-      return;
-    }
     await loadData();
     return;
   }
 
   // Try stored token
   const storedToken = localStorage.getItem('gd_token');
-  const tokenExp = localStorage.getItem('gd_token_exp');
-  dbg('Gespeicherter Token: ' + (storedToken ? 'JA' : 'NEIN') + ', gültig: ' + (tokenExp && Date.now() < parseInt(tokenExp) ? 'JA' : 'NEIN'));
-  if (storedToken && tokenExp && Date.now() < parseInt(tokenExp)) {
+  const storedExp = parseInt(localStorage.getItem('gd_token_exp') || '0');
+  if (storedToken && storedExp > Date.now() + 60000) {
     accessToken = storedToken;
-    dbg('Nutze gespeicherten Token');
+    tokenExpiry = storedExp;
     await loadData();
     return;
   }
 
-  // Try refresh token
-  const refreshTk = localStorage.getItem('gd_refresh');
-  dbg('Refresh Token: ' + (refreshTk ? 'JA' : 'NEIN'));
-  if (refreshTk) {
-    try {
-      setMsg('Token wird erneuert...');
-      accessToken = await refreshToken(refreshTk);
-      localStorage.setItem('gd_token', accessToken);
-      localStorage.setItem('gd_token_exp', Date.now() + 3500*1000);
-      dbg('Token erneuert');
-      await loadData();
-      return;
-    } catch(e) {
-      dbg('Refresh fehlgeschlagen: ' + e.message);
-    }
-  }
-
-  dbg('Zeige Login-Button');
+  // Need login
   showLoginBtn();
 }
 
 async function loadData() {
   setMsg('Lade Projektdaten...');
-  syncUI('busy','Lade...');
-  // Save email for silent re-auth hint
+  syncUI('busy', 'Lade...');
   try {
-    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',
-      {headers:{Authorization:'Bearer '+accessToken}});
-    const u = await info.json();
-    if (u.email) localStorage.setItem('gd_email', u.email);
-  } catch(e) {}
-  try {
-    const folderId = await findOrCreateFolder();
-    fileId = await findFile(folderId);
-    if (fileId) {
-      projects = await readFile(fileId);
-    } else {
-      projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
-      await writeFile(folderId, null, projects);
+    const remote = await readDrive();
+    projects = remote && Array.isArray(remote) ? remote : JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+    if (!remote) await writeDrive(projects);
+
+    // Restore pending changes after re-login
+    const pending = sessionStorage.getItem('pd_pending');
+    if (pending) {
+      try {
+        const pd = JSON.parse(pending);
+        if (Array.isArray(pd) && pd.length >= projects.length) {
+          projects = pd;
+          await writeDrive(projects);
+          toast('Änderungen nach Neu-Anmeldung gespeichert ✓');
+        }
+      } catch(e) {}
+      sessionStorage.removeItem('pd_pending');
     }
-    syncUI('ok','Verbunden ✓');
+
+    syncUI('ok', 'Verbunden ✓');
     document.getElementById('app-loading').style.display = 'none';
     document.getElementById('app-main').style.display = 'block';
     renderOverview();
   } catch(e) {
-    if (e.message === 'AUTH_EXPIRED') {
-      try { await tryRefresh(); await loadData(); } catch(e2) { showLoginBtn(); }
+    if (e.message === 'AUTH_EXPIRED' || e.message === 'NOT_AUTHED') {
+      showLoginBtn('Anmeldung erforderlich');
     } else {
-      showError(e.message, [
-        'Google Drive API ist aktiviert?',
-        'Client-ID stimmt mit dieser URL überein?',
-        'Ordner "' + DRIVE_FOLDER_NAME + '" ist zugänglich?'
-      ]);
+      setMsg('Fehler: ' + e.message);
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('btn-login').style.display = 'block';
     }
   }
 }
 
-function setMsg(m) { const e=document.getElementById('load-msg'); if(e) e.textContent=m; }
+function setMsg(m) { const e = document.getElementById('load-msg'); if (e) e.textContent = m; }
 function showLoginBtn(msg) {
-  document.getElementById('spinner').style.display='none';
+  document.getElementById('spinner').style.display = 'none';
   setMsg(msg || 'Bitte mit Google anmelden');
-  document.getElementById('btn-login').style.display='block';
+  document.getElementById('btn-login').style.display = 'block';
 }
 
-function showReloginBanner() {
-  // Remove existing banner if any
-  const existing = document.getElementById('relogin-banner');
-  if (existing) existing.remove();
-
-  const banner = document.createElement('div');
-  banner.id = 'relogin-banner';
-  banner.style.cssText = `
-    position:fixed;bottom:0;left:0;right:0;z-index:9999;
-    background:#1a3a5c;color:white;
-    padding:1rem 2rem;
-    display:flex;align-items:center;justify-content:space-between;
-    box-shadow:0 -4px 20px rgba(0,0,0,.3);
-    font-family:'DM Sans',sans-serif;
-  `;
-  banner.innerHTML = `
-    <div>
-      <strong style="font-size:.95rem">⚠ Sitzung abgelaufen</strong>
-      <span style="font-size:.85rem;opacity:.8;margin-left:.75rem">Bitte neu anmelden um weiter zu speichern. Deine Änderungen gehen nicht verloren.</span>
-    </div>
-    <button onclick="reloginAndContinue()" style="
-      padding:.55rem 1.4rem;border-radius:6px;border:none;
-      background:white;color:#1a3a5c;font-weight:700;
-      cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.9rem;
-      white-space:nowrap;margin-left:1rem;
-    ">🔐 Neu anmelden</button>
-  `;
-  document.body.appendChild(banner);
-}
-
-async function reloginAndContinue() {
-  // Save current projects to sessionStorage so they survive the redirect
-  sessionStorage.setItem('pd_pending_projects', JSON.stringify(projects));
-  startLogin();
-}
-function showError(msg, hints) {
-  document.getElementById('app-loading').style.display='none';
-  document.getElementById('app-error').style.display='block';
-  document.getElementById('err-msg').textContent = msg;
-  document.getElementById('err-hints').innerHTML = hints.map(h=>`<li>${h}</li>`).join('');
-}
-
-// ── TABS ─────────────────────────────────────────────────────
+// ════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════
 function showTab(t) {
   ['overview','steckbrief','form'].forEach(id => {
-    document.getElementById('view-'+id).style.display='none';
-    const tab=document.querySelector('[data-tab="'+id+'"]');
-    if(tab) tab.classList.remove('active');
+    document.getElementById('view-'+id).style.display = 'none';
+    const tab = document.querySelector('[data-tab="'+id+'"]');
+    if (tab) tab.classList.remove('active');
   });
-  document.getElementById('view-'+t).style.display='block';
-  const at=document.querySelector('[data-tab="'+t+'"]');
-  if(at) at.classList.add('active');
-  if(t==='overview') renderOverview();
-  if(t==='steckbrief') renderCards();
+  document.getElementById('view-'+t).style.display = 'block';
+  const at = document.querySelector('[data-tab="'+t+'"]');
+  if (at) at.classList.add('active');
+  if (t === 'overview') renderOverview();
+  if (t === 'steckbrief') renderCards();
 }
 
-// ── OVERVIEW ─────────────────────────────────────────────────
-const AL={
-  gruen:  'Gestartet (on track)',
-  gelb:   'Gestartet (leichte Verzögerung)',
-  rot:    'Gestartet (verzögert)',
-  grau:   'Nicht gestartet (wie geplant)',
-  blau:   'Nicht gestartet (verzögert)',
-  orange: 'Abgeschlossen'
+// ════════════════════════════════════════════════
+// AMPEL HELPERS
+// ════════════════════════════════════════════════
+const AL = {
+  gruen:'Gestartet (on track)', gelb:'Gestartet (leichte Verzögerung)',
+  rot:'Gestartet (verzögert)', grau:'Nicht gestartet (wie geplant)',
+  blau:'Nicht gestartet (verzögert)', orange:'Abgeschlossen'
 };
-function ab(a){return `<span class="ampel ${a||'grau'}"><span class="adot"></span>${AL[a]||a}</span>`;}
-function curMs(p){
-  const m=(p.meilensteine||[]).find(x=>x.status==='progress')||(p.meilensteine||[]).find(x=>x.status==='open');
-  if(!m) return '<span style="color:var(--green);font-size:.79rem">✓ Alle erledigt</span>';
+const ASTYLES = {
+  gruen:  'border-color:var(--green);background:var(--green-bg);color:var(--green)',
+  gelb:   'border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow)',
+  rot:    'border-color:var(--red);background:var(--red-bg);color:var(--red)',
+  grau:   'border-color:#999;background:#f0f0f0;color:#666',
+  blau:   'border-color:#1a56a0;background:#e8f0fe;color:#1a56a0',
+  orange: 'border-color:var(--orange);background:var(--orange-bg);color:var(--orange)'
+};
+function ab(a) {
+  const k = a || 'grau';
+  return `<span class="ampel ${k}"><span class="adot"></span>${AL[k]||k}</span>`;
+}
+function pickAmpel(v) {
+  selAmpel = v;
+  document.querySelectorAll('.aopt').forEach(el => {
+    el.style.cssText = el.dataset.v === v ? ASTYLES[v] + ';border-width:2px;border-style:solid' : '';
+  });
+}
+
+// ════════════════════════════════════════════════
+// OVERVIEW
+// ════════════════════════════════════════════════
+function curMs(p) {
+  const m = (p.meilensteine||[]).find(x=>x.status==='progress') || (p.meilensteine||[]).find(x=>x.status==='open');
+  if (!m) return '<span style="color:var(--green);font-size:.79rem">✓ Alle erledigt</span>';
   return `<div class="mstext">${m.name}<br><span style="color:var(--accent);font-weight:600">${m.datum||''}</span></div>`;
 }
-let currentFilter = '';
-let currentSort = { col: '', dir: 1 };
 
 function updateStats() {
   document.getElementById('sv-total').textContent = projects.length;
-  document.getElementById('sv-gruen').textContent = projects.filter(p=>p.ampel==='gruen').length;
-  document.getElementById('sv-gelb').textContent = projects.filter(p=>p.ampel==='gelb').length;
-  document.getElementById('sv-rot').textContent = projects.filter(p=>p.ampel==='rot').length;
-  document.getElementById('sv-grau').textContent = projects.filter(p=>p.ampel==='grau'||!p.ampel).length;
-  document.getElementById('sv-blau').textContent = projects.filter(p=>p.ampel==='blau').length;
-  document.getElementById('sv-orange').textContent = projects.filter(p=>p.ampel==='orange').length;
-  // Update leiter dropdown
-  const leiterSel = document.getElementById('filter-leiter');
-  if (leiterSel) {
-    const cur = leiterSel.value;
-    const leiters = [...new Set(projects.map(p=>p.leiter).filter(Boolean))].sort();
-    leiterSel.innerHTML = '<option value="">Alle Projektleiter</option>' +
-      leiters.map(l=>`<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
-  }
+  ['gruen','gelb','rot','grau','blau','orange'].forEach(k => {
+    const el = document.getElementById('sv-'+k);
+    if (el) el.textContent = projects.filter(p => (p.ampel||'grau') === k).length;
+  });
 }
 
-function filterStatus(status) {
-  currentFilter = status;
-  const sel = document.getElementById('filter-status');
-  if (sel) sel.value = status;
-  // Highlight active card
+function filterAmpel(v) {
+  document.getElementById('filter-ampel').value = v;
   ['gruen','gelb','rot','grau','blau','orange','total'].forEach(k => {
     const el = document.getElementById('sc-'+k);
-    if (el) el.classList.toggle('active-filter', k === (status||'total') );
+    if (el) el.classList.toggle('active-filter', k === (v||'total'));
   });
   applyFilters();
 }
 
 function resetFilters() {
-  currentFilter = '';
-  currentSort = { col: '', dir: 1 };
-  const fs = document.getElementById('filter-status');
-  const fl = document.getElementById('filter-leiter');
-  const ft = document.getElementById('filter-search');
-  if (fs) fs.value = '';
-  if (fl) fl.value = '';
-  if (ft) ft.value = '';
+  document.getElementById('filter-search').value = '';
+  document.getElementById('filter-ampel').value = '';
+  sortCol = ''; sortDir = 1;
   ['gruen','gelb','rot','grau','blau','orange','total'].forEach(k => {
-    const el = document.getElementById('sc-'+k);
-    if (el) el.classList.remove('active-filter');
+    const el = document.getElementById('sc-'+k); if (el) el.classList.remove('active-filter');
+  });
+  ['name','ampel','fortschritt','leiter'].forEach(c => {
+    const el = document.getElementById('sort-'+c); if (el) el.textContent = '';
   });
   renderRows(projects);
 }
 
 function sortBy(col) {
-  if (currentSort.col === col) currentSort.dir *= -1;
-  else { currentSort.col = col; currentSort.dir = 1; }
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
   ['name','ampel','fortschritt','leiter'].forEach(c => {
     const el = document.getElementById('sort-'+c);
-    if (el) el.textContent = c === col ? (currentSort.dir === 1 ? ' ▲' : ' ▼') : '';
+    if (el) el.textContent = c === col ? (sortDir === 1 ? ' ▲' : ' ▼') : '';
   });
   applyFilters();
 }
 
 function applyFilters() {
-  const statusF = (document.getElementById('filter-status')||{value:''}).value;
-  const leiterF = (document.getElementById('filter-leiter')||{value:''}).value;
-  const searchF = ((document.getElementById('filter-search')||{value:''}).value||'').toLowerCase();
-  let filtered = projects.filter(p => {
-    const ampel = p.ampel || 'grau';
-    if (statusF && ampel !== statusF) return false;
-    if (leiterF && p.leiter !== leiterF) return false;
-    if (searchF) {
-      const words = searchF.split(/\s+/).filter(Boolean);
-      const haystack = [p.name,p.leiter,p.plFachbereich,p.sponsor,p.team,p.status,
+  const sf = (document.getElementById('filter-search').value||'').toLowerCase();
+  const af = document.getElementById('filter-ampel').value;
+  let list = projects.filter(p => {
+    if (af && (p.ampel||'grau') !== af) return false;
+    if (sf) {
+      const words = sf.split(/\s+/).filter(Boolean);
+      const hay = [p.name,p.leiter,p.plFachbereich,p.sponsor,p.team,p.status,
         p.beschreibung,p.anmerkungen,p.risiken,p.fragen,
-        (p.meilensteine||[]).map(m=>m.name).join(' ')
-      ].join(' ').toLowerCase();
-      if (!words.every(w => haystack.includes(w))) return false;
+        (p.meilensteine||[]).map(m=>m.name).join(' ')].join(' ').toLowerCase();
+      if (!words.every(w => hay.includes(w))) return false;
     }
     return true;
   });
-  if (currentSort.col) {
-    filtered = [...filtered].sort((a,b) => {
-      let av = a[currentSort.col]||'', bv = b[currentSort.col]||'';
-      if (typeof av === 'number') return (av-bv)*currentSort.dir;
-      return av.toString().localeCompare(bv.toString()) * currentSort.dir;
+  if (sortCol) {
+    list = [...list].sort((a,b) => {
+      const av = a[sortCol]||'', bv = b[sortCol]||'';
+      return typeof av === 'number' ? (av-bv)*sortDir : av.toString().localeCompare(bv.toString())*sortDir;
     });
   }
-  renderRows(filtered);
+  renderRows(list);
 }
 
 function renderRows(list) {
-  document.getElementById('tbody').innerHTML = list.map(p=>`
+  document.getElementById('tbody').innerHTML = list.map(p => `
     <tr>
       <td class="pname">${p.name}</td>
-      <td>${ab(p.ampel)}<span style="font-size:.76rem;color:var(--text-muted);display:block;margin-top:.18rem">${p.status}</span></td>
+      <td>${ab(p.ampel)}<span style="font-size:.76rem;color:var(--text-muted);display:block;margin-top:.18rem">${p.status||''}</span></td>
       <td style="min-width:115px"><div style="display:flex;align-items:center;gap:.55rem">
-        <div class="pbar" style="width:90px"><div class="pfill" style="width:${p.fortschritt}%"></div></div>
-        <span style="font-size:.8rem;font-weight:600">${p.fortschritt}%</span>
+        <div class="pbar" style="width:90px"><div class="pfill" style="width:${p.fortschritt||0}%"></div></div>
+        <span style="font-size:.8rem;font-weight:600">${p.fortschritt||0}%</span>
       </div></td>
       <td>${curMs(p)}</td>
       <td style="font-size:.83rem">${p.leiter||'—'}</td>
@@ -904,17 +735,18 @@ function renderRows(list) {
     </tr>`).join('');
 }
 
-function renderOverview(){
-  updateStats();
-  applyFilters();
-}
+function renderOverview() { updateStats(); applyFilters(); }
 
-// ── CARDS ────────────────────────────────────────────────────
-function mssl(s){return s==='done'?'<span class="mss done">✓</span>':s==='progress'?'<span class="mss progress">⟳</span>':'<span class="mss open">○</span>';}
-function renderCards(){
-  document.getElementById('cgrid').innerHTML=projects.map(p=>{
-    const risks=(p.risiken||'').split('\n').filter(Boolean);
-    const msl=(p.meilensteine||[]).slice(0,5).map(m=>
+// ════════════════════════════════════════════════
+// CARDS
+// ════════════════════════════════════════════════
+function mssl(s) {
+  return s==='done'?'<span class="mss done">✓</span>':s==='progress'?'<span class="mss progress">⟳</span>':'<span class="mss open">○</span>';
+}
+function renderCards() {
+  document.getElementById('cgrid').innerHTML = projects.map(p => {
+    const risks = (p.risiken||'').split('\n').filter(Boolean);
+    const msl = (p.meilensteine||[]).slice(0,5).map(m =>
       `<li><span class="msn">${m.name}</span><span class="msd">${m.datum||''}</span>${mssl(m.status)}</li>`).join('');
     return `<div class="pcard">
       <div class="cardh"><div class="ctitle">${p.name}</div>${ab(p.ampel)}</div>
@@ -924,10 +756,10 @@ function renderCards(){
           <div><div class="ikey">PL Fachbereich</div><div class="ival">${p.plFachbereich||'—'}</div></div>
           <div><div class="ikey">Sponsor</div><div class="ival">${p.sponsor||'—'}</div></div>
           <div><div class="ikey">Team</div><div class="ival">${p.team||'—'}</div></div>
-          <div><div class="ikey">Status</div><div class="ival">${p.status}</div></div>
+          <div><div class="ikey">Status</div><div class="ival">${p.status||'—'}</div></div>
         </div>
         <div class="slbl">Fortschritt</div>
-        <div class="prow"><div class="pbar" style="flex:1"><div class="pfill" style="width:${p.fortschritt}%"></div></div><span class="ppct">${p.fortschritt}%</span></div>
+        <div class="prow"><div class="pbar" style="flex:1"><div class="pfill" style="width:${p.fortschritt||0}%"></div></div><span class="ppct">${p.fortschritt||0}%</span></div>
         ${p.beschreibung?`<div style="margin:.6rem 0"><div class="slbl">Beschreibung</div><p style="font-size:.83rem;color:var(--text-muted);line-height:1.5">${p.beschreibung.slice(0,200)}${p.beschreibung.length>200?'…':''}</p></div>`:''}
         ${msl?`<div style="margin:.6rem 0"><div class="slbl">Meilensteine</div><ul class="mslist">${msl}</ul></div>`:''}
         ${risks.length?`<div style="margin:.6rem 0"><div class="slbl">Risiken</div>${risks.map(r=>`<span class="rtag">⚠ ${r}</span>`).join('')}</div>`:''}
@@ -938,26 +770,15 @@ function renderCards(){
   }).join('');
 }
 
-// ── FORM ─────────────────────────────────────────────────────
-const AMPEL_STYLES = {
-  gruen:  'border-color:var(--green);background:var(--green-bg);color:var(--green)',
-  gelb:   'border-color:#f0a800;background:var(--yellow-bg);color:var(--yellow)',
-  rot:    'border-color:var(--red);background:var(--red-bg);color:var(--red)',
-  grau:   'border-color:#999;background:#f0f0f0;color:#666',
-  blau:   'border-color:#1a56a0;background:#e8f0fe;color:#1a56a0',
-  orange: 'border-color:var(--orange);background:var(--orange-bg);color:var(--orange)'
-};
-function pickAmpel(v){
-  selAmpel=v;
-  document.querySelectorAll('.aopt').forEach(el=>{
-    el.style.cssText = el.dataset.v===v ? (AMPEL_STYLES[v]||'') + ';border-width:2px;border-style:solid' : '';
-    el.className='aopt';
-  });
-}
-function addMs(ms){
-  ms=ms||{name:'',datum:'',verantwortlich:'',status:'open'};
-  const row=document.createElement('div');row.className='msr';
-  row.innerHTML=`
+// ════════════════════════════════════════════════
+// FORM
+// ════════════════════════════════════════════════
+const FIELDS = ['name','leiter','plFachbereich','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'];
+
+function addMs(ms) {
+  ms = ms || {name:'',datum:'',verantwortlich:'',status:'open'};
+  const row = document.createElement('div'); row.className = 'msr';
+  row.innerHTML = `
     <input type="text" class="mn" placeholder="Meilenstein" value="${esc(ms.name)}">
     <input type="text" class="md" placeholder="Datum" value="${esc(ms.datum||'')}">
     <input type="text" class="mv" placeholder="Verantwortlich" value="${esc(ms.verantwortlich||'')}">
@@ -969,102 +790,101 @@ function addMs(ms){
     <button class="brm" onclick="this.parentElement.remove()">×</button>`;
   document.getElementById('msed').appendChild(row);
 }
-function getMs(){
-  return Array.from(document.querySelectorAll('#msed .msr')).map(r=>({
-    name:r.querySelector('.mn').value,datum:r.querySelector('.md').value,
-    verantwortlich:r.querySelector('.mv').value,status:r.querySelector('.ms').value
-  })).filter(m=>m.name);
+
+function getMs() {
+  return Array.from(document.querySelectorAll('#msed .msr')).map(r => ({
+    name: r.querySelector('.mn').value,
+    datum: r.querySelector('.md').value,
+    verantwortlich: r.querySelector('.mv').value,
+    status: r.querySelector('.ms').value
+  })).filter(m => m.name);
 }
-function newProject(){
-  document.getElementById('ftitle').textContent='Neues Projekt erfassen';
-  document.getElementById('eid').value='';
-  ['name','leiter','pl-fachbereich','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
-  document.getElementById('f-status').value='In Bearbeitung';
-  document.getElementById('f-fortschritt').value=0;
-  document.getElementById('f-bplan').value='';document.getElementById('f-bist').value='';
-  document.getElementById('msed').innerHTML='';
+
+function newProject() {
+  document.getElementById('ftitle').textContent = 'Neues Projekt erfassen';
+  document.getElementById('eid').value = '';
+  FIELDS.forEach(f => { const el = document.getElementById('f-'+f); if (el) el.value = ''; });
+  document.getElementById('f-status').value = 'In Bearbeitung';
+  document.getElementById('f-fortschritt').value = 0;
+  document.getElementById('f-budgetPlan').value = '';
+  document.getElementById('f-budgetIst').value = '';
+  document.getElementById('msed').innerHTML = '';
   pickAmpel('gruen');
 }
-function editProject(id){
-  const p=projects.find(x=>x.id===id);if(!p)return;
-  document.getElementById('ftitle').textContent='Projekt bearbeiten';
-  document.getElementById('eid').value=id;
-  document.getElementById('f-name').value=p.name||'';
-  document.getElementById('f-leiter').value=p.leiter||'';
-  document.getElementById('f-pl-fachbereich').value=p.plFachbereich||'';
-  document.getElementById('f-sponsor').value=p.sponsor||'';
-  document.getElementById('f-team').value=p.team||'';
-  document.getElementById('f-beschreibung').value=p.beschreibung||'';
-  document.getElementById('f-erfolgsmessung').value=p.erfolgsmessung||'';
-  document.getElementById('f-risiken').value=p.risiken||'';
-  document.getElementById('f-fragen').value=p.fragen||'';
-  document.getElementById('f-anmerkungen').value=p.anmerkungen||'';
-  document.getElementById('f-status').value=p.status||'In Bearbeitung';
-  document.getElementById('f-fortschritt').value=p.fortschritt||0;
-  document.getElementById('f-bplan').value=p.budgetPlan||'';document.getElementById('f-bist').value=p.budgetIst||'';
-  document.getElementById('msed').innerHTML='';
-  (p.meilensteine||[]).forEach(ms=>addMs(ms));
-  pickAmpel(p.ampel||'gruen');showTab('form');
+
+function editProject(id) {
+  const p = projects.find(x => x.id === id); if (!p) return;
+  document.getElementById('ftitle').textContent = 'Projekt bearbeiten';
+  document.getElementById('eid').value = id;
+  FIELDS.forEach(f => { const el = document.getElementById('f-'+f); if (el) el.value = p[f]||''; });
+  document.getElementById('f-status').value = p.status||'In Bearbeitung';
+  document.getElementById('f-fortschritt').value = p.fortschritt||0;
+  document.getElementById('f-budgetPlan').value = p.budgetPlan||'';
+  document.getElementById('f-budgetIst').value = p.budgetIst||'';
+  document.getElementById('msed').innerHTML = '';
+  (p.meilensteine||[]).forEach(ms => addMs(ms));
+  pickAmpel(p.ampel||'gruen');
+  showTab('form');
 }
-async function saveProject(){
-  const name=document.getElementById('f-name').value.trim();
-  if(!name){toast('Bitte Projektname eintragen');return;}
-  const eid=document.getElementById('eid').value;
-  const d={name,leiter:v('f-leiter'),plFachbereich:v('f-pl-fachbereich'),sponsor:v('f-sponsor'),team:v('f-team'),
-    beschreibung:v('f-beschreibung'),erfolgsmessung:v('f-erfolgsmessung'),
-    status:document.getElementById('f-status').value,
-    fortschritt:parseInt(document.getElementById('f-fortschritt').value)||0,
-    ampel:selAmpel,budgetPlan:v('f-bplan'),budgetIst:v('f-bist'),
-    meilensteine:getMs(),risiken:v('f-risiken'),fragen:v('f-fragen'),anmerkungen:v('f-anmerkungen')};
-  if(eid){const i=projects.findIndex(p=>p.id==eid);if(i>=0)projects[i]={...projects[i],...d};}
-  else projects.push({id:nextId(),...d});
-  await autosave();
-  toast(eid?'Projekt aktualisiert ✓':'Projekt gespeichert ✓');
+
+async function saveProject() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Bitte Projektname eintragen'); return; }
+  const eid = document.getElementById('eid').value;
+  const d = { name };
+  FIELDS.forEach(f => { if (f !== 'name') { const el = document.getElementById('f-'+f); if (el) d[f] = el.value.trim(); } });
+  d.status = document.getElementById('f-status').value;
+  d.fortschritt = parseInt(document.getElementById('f-fortschritt').value)||0;
+  d.budgetPlan = document.getElementById('f-budgetPlan').value.trim();
+  d.budgetIst = document.getElementById('f-budgetIst').value.trim();
+  d.ampel = selAmpel;
+  d.meilensteine = getMs();
+  if (eid) {
+    const i = projects.findIndex(p => p.id == eid);
+    if (i >= 0) projects[i] = { ...projects[i], ...d };
+  } else {
+    projects.push({ id: nextId(), ...d });
+  }
+  await save();
+  toast(eid ? 'Projekt aktualisiert ✓' : 'Projekt gespeichert ✓');
   showTab('overview');
 }
-function v(id){return document.getElementById(id).value.trim();}
-function nextId(){return projects.length?Math.max(...projects.map(p=>p.id))+1:1;}
 
-// ── DELETE ────────────────────────────────────────────────────
-function askDel(id){delId=id;document.getElementById('del-modal').classList.add('open');}
-function closeDelModal(){document.getElementById('del-modal').classList.remove('open');delId=null;}
-document.getElementById('del-confirm').onclick=async function(){
-  if(delId!==null){projects=projects.filter(p=>p.id!==delId);await autosave();closeDelModal();renderOverview();toast('Projekt gelöscht');}
+function nextId() { return projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1; }
+
+// ════════════════════════════════════════════════
+// DELETE
+// ════════════════════════════════════════════════
+function askDel(id) { delId=id; document.getElementById('del-modal').classList.add('open'); }
+function closeDelModal() { document.getElementById('del-modal').classList.remove('open'); delId=null; }
+document.getElementById('del-confirm').onclick = async function() {
+  if (delId !== null) {
+    projects = projects.filter(p => p.id !== delId);
+    await save();
+    closeDelModal(); renderOverview(); toast('Projekt gelöscht');
+  }
 };
 
-// ── TOAST ─────────────────────────────────────────────────────
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
-function esc(s){return(s||'').replace(/"/g,'&quot;');}
+// ════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════
+function toast(m) {
+  const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function esc(s) { return (s||'').replace(/"/g,'&quot;'); }
 
-// ── DEFAULT DATA ──────────────────────────────────────────────
-const DEFAULT_PROJECTS=[
-  {id:1,name:"Einheitliches System zur Personalbedarfsplanung",leiter:"Sebastian Dettmann",sponsor:"BT",team:"BT, VR, DK, JW, SD",beschreibung:"Ablösung der bisherigen Excel Planung. Aufbau einer zentralen Daten- und Verarbeitungslogik zur Automatisierung sowie Bereitstellung über standardisierte Reporting-Tools.",erfolgsmessung:"KPIs im automatisierten Report entsprechen den realen Werten.",status:"In Bearbeitung",fortschritt:80,ampel:"gruen",budgetPlan:"komplett intern",budgetIst:"intern",meilensteine:[{name:"KickOff, Definition Zieltemplate",datum:"Juli 2025",verantwortlich:"Projektteam",status:"done"},{name:"Technische Grundlagen schaffen",datum:"Dezember 2025",verantwortlich:"Digital, CO",status:"done"},{name:"Überführung der Daten in Reporting Tool",datum:"Januar 2026",verantwortlich:"CO",status:"progress"},{name:"Finalisierung Reporting",datum:"Februar 2026",verantwortlich:"CO",status:"open"}],risiken:"Datenqualität zu schlecht für automatisierte Verarbeitung",fragen:"Rücksprache mit Steuerberatern halten",anmerkungen:"Aktueller Fortschritt auf Zielkurs"},
-  {id:2,name:"Einheitliches AIS-System etablieren",leiter:"Thomas Wallawgo / Sebastian Dettmann",sponsor:"PM",team:"TW, SD, BT, PM, (*SK)",beschreibung:"Evaluation und Auswahl eines geeigneten AIS-Systems für die gesamte MVZ-Gruppe.",erfolgsmessung:"System implementiert und in n-MVZs produktiv genutzt.",status:"In Bearbeitung",fortschritt:15,ampel:"gelb",budgetPlan:"tbd - >100K",budgetIst:"0",meilensteine:[{name:"KickOff, Definition Scopes",datum:"Dezember 2025",verantwortlich:"Projektteam",status:"done"},{name:"Req.-Katalog aufsetzen",datum:"März 2026",verantwortlich:"Digital",status:"progress"},{name:"Marktevaluation",datum:"Juli 2026",verantwortlich:"Projektteam",status:"open"},{name:"POC Implementierung",datum:"Juni 2027",verantwortlich:"Digital",status:"open"}],risiken:"Keine potenziellen Partner verfügbar\nKosten übersteigen den Nutzen",fragen:"Aktuell keine",anmerkungen:"Anforderungsworkshops mit Dr. Plewe erfolgt."},
-  {id:3,name:"Einheitliches System zur Personaleinsatzplanung",leiter:"",sponsor:"",team:"",beschreibung:"Einführung eines einheitlichen Systems zur Personaleinsatzplanung in allen MVZs.",erfolgsmessung:"",status:"In Vorbereitung",fortschritt:1,ampel:"gelb",budgetPlan:"tbd",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"Februar 2026",verantwortlich:"Projektteam",status:"open"},{name:"Einarbeitung Tool",datum:"März 2026",verantwortlich:"Digital",status:"open"},{name:"Rollout",datum:"Tbd – Dez. 2026",verantwortlich:"Projektteam",status:"open"}],risiken:"MVZs möchten Tool nicht einsetzen",fragen:"Aktuell keine",anmerkungen:""},
-  {id:4,name:"Einheitliche IT Standards etablieren",leiter:"Michael Ochmann",sponsor:"PM",team:"Team Bastian, PM, Digital, ES (RK)",beschreibung:"Etablierung einheitlicher IT-Standards über alle MVZs. IT-Security, Backup & Recovery, Microsoft Services.",erfolgsmessung:"Service Katalog verabschiedet und Rollout in n-MVZs.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"tbd",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Service Katalog definieren",datum:"September 2026",verantwortlich:"Projektteam",status:"open"},{name:"Rollout",datum:"Tbd",verantwortlich:"Digital",status:"open"}],risiken:"Kosten in den einzelnen MVZs",fragen:"Support zentral vs. dezentral",anmerkungen:"RK mit einbeziehen!"},
-  {id:5,name:"Prozessoptimierung innerhalb der BU",leiter:"Sissy Schönfelder",sponsor:"PM",team:"Team Bastian, Team Michael, PM, Digital",beschreibung:"Kontinuierliche Entwicklung von Optimierungsmaßnahmen. Identifikation von Ineffizienzen und Medienbrüchen.",erfolgsmessung:"Einzelprojekte abgeschlossen und in produktive Nutzung übergeben.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"CRM Datenqualität erhöhen",datum:"März 2026",verantwortlich:"SiS, MW",status:"progress"},{name:"CRM Rollout Team Bastian",datum:"Tbd – Dez. 2026",verantwortlich:"SiS",status:"open"},{name:"Automatisiertes Reporting",datum:"Tbd – Dez. 2026",verantwortlich:"JW, PM, BT",status:"open"}],risiken:"Zeitliche Verfügbarkeiten der Ansprechpartner",fragen:"CRM auch für Operations?",anmerkungen:""},
-  {id:6,name:"Patientenportal inkl. Hotline etablieren",leiter:"Sebastian Dettmann",sponsor:"PM",team:"Team Bastian, PM, Digital, (*SK)",beschreibung:"Einführung eines modernen Patientenportals mit 2-Wege-Kommunikation und KI-gestützter Hotline.",erfolgsmessung:"Einheitliches Tool in n-MVZs etabliert.",status:"In Bearbeitung",fortschritt:10,ampel:"gelb",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Marktevaluation",datum:"Juni 2026",verantwortlich:"SD, BT, PM",status:"progress"},{name:"Auswahl Partner & Tool",datum:"September 2026",verantwortlich:"JW, PM, BT",status:"open"},{name:"Rollout",datum:"TBD – Dez. 2027",verantwortlich:"Digital",status:"open"}],risiken:"Geeignetes Tool finden\nKostenaspekte MVZs",fragen:"Operative Projektmitarbeiter",anmerkungen:"Erstes Tool 2025 vorgestellt."}
+// ════════════════════════════════════════════════
+// DEFAULT DATA
+// ════════════════════════════════════════════════
+const DEFAULT_PROJECTS = [
+  {id:1,name:"Einheitliches System zur Personalbedarfsplanung",leiter:"Sebastian Dettmann",plFachbereich:"",sponsor:"BT",team:"BT, VR, DK, JW, SD",beschreibung:"Ablösung der bisherigen Excel Planung. Aufbau einer zentralen Daten- und Verarbeitungslogik zur Automatisierung sowie Bereitstellung über standardisierte Reporting-Tools.",erfolgsmessung:"KPIs im automatisierten Report entsprechen den realen Werten.",status:"In Bearbeitung",fortschritt:80,ampel:"gruen",budgetPlan:"komplett intern",budgetIst:"intern",meilensteine:[{name:"KickOff, Definition Zieltemplate",datum:"Juli 2025",verantwortlich:"Projektteam",status:"done"},{name:"Technische Grundlagen schaffen",datum:"Dezember 2025",verantwortlich:"Digital, CO",status:"done"},{name:"Überführung der Daten in Reporting Tool",datum:"Januar 2026",verantwortlich:"CO",status:"progress"},{name:"Finalisierung Reporting",datum:"Februar 2026",verantwortlich:"CO",status:"open"}],risiken:"Datenqualität zu schlecht für automatisierte Verarbeitung",fragen:"Rücksprache mit Steuerberatern halten",anmerkungen:"Aktueller Fortschritt auf Zielkurs"},
+  {id:2,name:"Einheitliches AIS-System etablieren",leiter:"Thomas Wallawgo / Sebastian Dettmann",plFachbereich:"",sponsor:"PM",team:"TW, SD, BT, PM, (*SK)",beschreibung:"Evaluation und Auswahl eines geeigneten AIS-Systems für die gesamte MVZ-Gruppe.",erfolgsmessung:"System implementiert und in n-MVZs produktiv genutzt.",status:"In Bearbeitung",fortschritt:15,ampel:"gelb",budgetPlan:"tbd - >100K",budgetIst:"0",meilensteine:[{name:"KickOff, Definition Scopes",datum:"Dezember 2025",verantwortlich:"Projektteam",status:"done"},{name:"Req.-Katalog aufsetzen",datum:"März 2026",verantwortlich:"Digital",status:"progress"},{name:"Marktevaluation",datum:"Juli 2026",verantwortlich:"Projektteam",status:"open"},{name:"POC Implementierung",datum:"Juni 2027",verantwortlich:"Digital",status:"open"}],risiken:"Keine potenziellen Partner verfügbar\nKosten übersteigen den Nutzen",fragen:"Aktuell keine",anmerkungen:"Anforderungsworkshops mit Dr. Plewe erfolgt."},
+  {id:3,name:"Einheitliches System zur Personaleinsatzplanung",leiter:"",plFachbereich:"",sponsor:"",team:"",beschreibung:"Einführung eines einheitlichen Systems zur Personaleinsatzplanung in allen MVZs.",erfolgsmessung:"",status:"In Vorbereitung",fortschritt:1,ampel:"gelb",budgetPlan:"tbd",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"Februar 2026",verantwortlich:"Projektteam",status:"open"},{name:"Einarbeitung Tool",datum:"März 2026",verantwortlich:"Digital",status:"open"},{name:"Rollout",datum:"Tbd – Dez. 2026",verantwortlich:"Projektteam",status:"open"}],risiken:"MVZs möchten Tool nicht einsetzen",fragen:"Aktuell keine",anmerkungen:""},
+  {id:4,name:"Einheitliche IT Standards etablieren",leiter:"Michael Ochmann",plFachbereich:"",sponsor:"PM",team:"Team Bastian, PM, Digital, ES (RK)",beschreibung:"Etablierung einheitlicher IT-Standards über alle MVZs. IT-Security, Backup & Recovery, Microsoft Services.",erfolgsmessung:"Service Katalog verabschiedet und Rollout in n-MVZs.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"tbd",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Service Katalog definieren",datum:"September 2026",verantwortlich:"Projektteam",status:"open"},{name:"Rollout",datum:"Tbd",verantwortlich:"Digital",status:"open"}],risiken:"Kosten in den einzelnen MVZs",fragen:"Support zentral vs. dezentral",anmerkungen:"RK mit einbeziehen!"},
+  {id:5,name:"Prozessoptimierung innerhalb der BU",leiter:"Sissy Schönfelder",plFachbereich:"",sponsor:"PM",team:"Team Bastian, Team Michael, PM, Digital",beschreibung:"Kontinuierliche Entwicklung von Optimierungsmaßnahmen. Identifikation von Ineffizienzen und Medienbrüchen.",erfolgsmessung:"Einzelprojekte abgeschlossen und in produktive Nutzung übergeben.",status:"In Vorbereitung",fortschritt:1,ampel:"gruen",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"CRM Datenqualität erhöhen",datum:"März 2026",verantwortlich:"SiS, MW",status:"progress"},{name:"CRM Rollout Team Bastian",datum:"Tbd – Dez. 2026",verantwortlich:"SiS",status:"open"},{name:"Automatisiertes Reporting",datum:"Tbd – Dez. 2026",verantwortlich:"JW, PM, BT",status:"open"}],risiken:"Zeitliche Verfügbarkeiten der Ansprechpartner",fragen:"CRM auch für Operations?",anmerkungen:""},
+  {id:6,name:"Patientenportal inkl. Hotline etablieren",leiter:"Sebastian Dettmann",plFachbereich:"",sponsor:"PM",team:"Team Bastian, PM, Digital, (*SK)",beschreibung:"Einführung eines modernen Patientenportals mit 2-Wege-Kommunikation und KI-gestützter Hotline.",erfolgsmessung:"Einheitliches Tool in n-MVZs etabliert.",status:"In Bearbeitung",fortschritt:10,ampel:"gelb",budgetPlan:"intern",budgetIst:"0",meilensteine:[{name:"KickOff",datum:"April 2026",verantwortlich:"Projektteam",status:"open"},{name:"Marktevaluation",datum:"Juni 2026",verantwortlich:"SD, BT, PM",status:"progress"},{name:"Auswahl Partner & Tool",datum:"September 2026",verantwortlich:"JW, PM, BT",status:"open"},{name:"Rollout",datum:"TBD – Dez. 2027",verantwortlich:"Digital",status:"open"}],risiken:"Geeignetes Tool finden\nKostenaspekte MVZs",fragen:"Operative Projektmitarbeiter",anmerkungen:"Erstes Tool 2025 vorgestellt."}
 ];
-
-// Fallback: show login button after 4s if still loading
-setTimeout(() => {
-  if (document.getElementById('app-loading').style.display !== 'none' &&
-      document.getElementById('btn-login').style.display === 'none') {
-    showLoginBtn('Verbindung dauert lange – bitte anmelden');
-  }
-}, 4000);
-
-// Warn user 5 min before token expires
-setInterval(() => {
-  const exp = parseInt(localStorage.getItem('gd_token_exp') || '0');
-  if (accessToken && exp) {
-    const remaining = exp - Date.now();
-    if (remaining > 0 && remaining < 5 * 60 * 1000) {
-      const mins = Math.ceil(remaining / 60000);
-      syncUI('busy', `Sitzung läuft in ${mins} Min. ab`);
-    }
-  }
-}, 60 * 1000);  // check every minute
 
 boot();
 </script>
