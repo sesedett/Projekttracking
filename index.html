@@ -456,12 +456,22 @@ async function refreshToken(refresh) {
 }
 
 // ── Google Drive API ─────────────────────────────────────────
-async function gdReq(url, opts={}) {
+async function gdReq(url, opts={}, timeoutMs=12000) {
   opts.headers = opts.headers || {};
   opts.headers['Authorization'] = 'Bearer ' + accessToken;
-  const r = await fetch(url, opts);
-  if (r.status === 401) throw new Error('AUTH_EXPIRED');
-  return r;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...opts, signal: controller.signal });
+    clearTimeout(timer);
+    if (r.status === 401) throw new Error('AUTH_EXPIRED');
+    if (r.status === 404) throw new Error('404');
+    return r;
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('Timeout – Google Drive antwortet nicht');
+    throw e;
+  }
 }
 
 async function findOrCreateFolder() {
@@ -525,27 +535,98 @@ function syncUI(state, label) {
   if(l) l.textContent = label;
 }
 
-async function autosave() {
+// Debounce: avoid multiple rapid saves
+let _saveTimer = null;
+function scheduleSave() {
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => autosave(), 400);
+}
+
+async function autosave(retryCount=0) {
   if (!accessToken) return;
-  syncUI('busy','Speichere...');
+  syncUI('busy', retryCount > 0 ? 'Erneuter Versuch...' : 'Speichere...');
   try {
-    const folderId = await findOrCreateFolder();
+    const folderId = _folderId || await findOrCreateFolder();
     await writeFile(folderId, fileId, projects);
     syncUI('ok','Gespeichert ✓');
   } catch(e) {
-    if (e.message === 'AUTH_EXPIRED') { await tryRefresh(); await autosave(); return; }
-    syncUI('err','Fehler'); toast('Speicherfehler: ' + e.message);
+    console.error('autosave error:', e.message);
+    if (e.message === 'AUTH_EXPIRED') {
+      syncUI('busy', 'Token erneuern...');
+      try {
+        await tryRefresh();
+        await autosave(retryCount);
+      } catch(e2) {
+        syncUI('err', 'Sitzung abgelaufen');
+        toast('Sitzung abgelaufen – bitte Seite neu laden und neu anmelden');
+        localStorage.removeItem('gd_token');
+        localStorage.removeItem('gd_token_exp');
+        setTimeout(() => showLoginBtn('Sitzung abgelaufen – bitte neu anmelden'), 2000);
+      }
+      return;
+    }
+    if (e.message === '404' || (e.message && e.message.includes('404'))) {
+      fileId = null; _folderId = null;
+      localStorage.removeItem('gd_file_id');
+      localStorage.removeItem('gd_folder_id');
+      if (retryCount < 2) { await autosave(retryCount + 1); return; }
+    }
+    if (e.message && e.message.includes('Timeout') && retryCount < 2) {
+      syncUI('busy', 'Timeout – erneut...');
+      await new Promise(r => setTimeout(r, 1500));
+      await autosave(retryCount + 1);
+      return;
+    }
+    syncUI('err','Fehler');
+    toast('Speicherfehler: ' + e.message);
   }
 }
 
 async function forceSave() { await autosave(); toast('In Google Drive gespeichert ✓'); }
 
 async function tryRefresh() {
-  const rt = localStorage.getItem('gd_refresh');
-  if (!rt) throw new Error('Bitte neu anmelden');
-  accessToken = await refreshToken(rt);
-  localStorage.setItem('gd_token', accessToken);
-  localStorage.setItem('gd_token_exp', Date.now() + 3500*1000);
+  // Implicit flow has no refresh token – do silent re-auth via hidden iframe
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('Silent re-auth Timeout'));
+    }, 15000);
+
+    // Listen for token from iframe
+    function onMsg(e) {
+      if (e.origin !== window.location.origin) return;
+      if (e.data && e.data.type === 'gd_token') {
+        clearTimeout(timeout);
+        window.removeEventListener('message', onMsg);
+        accessToken = e.data.token;
+        localStorage.setItem('gd_token', accessToken);
+        localStorage.setItem('gd_token_exp', Date.now() + (e.data.expires - 60) * 1000);
+        resolve();
+      }
+    }
+    window.addEventListener('message', onMsg);
+
+    // Build silent auth URL (prompt=none tries without UI)
+    const state = base64url(crypto.getRandomValues(new Uint8Array(8)));
+    const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    url.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+    url.searchParams.set('redirect_uri', redirectUri());
+    url.searchParams.set('response_type', 'token');
+    url.searchParams.set('scope', 'https://www.googleapis.com/auth/drive.file');
+    url.searchParams.set('state', state);
+    url.searchParams.set('prompt', 'none');  // silent – no UI shown
+    url.searchParams.set('login_hint', localStorage.getItem('gd_email') || '');
+
+    // Open in popup instead of iframe (more reliable)
+    const popup = window.open(url.toString(), 'gd_reauth', 'width=500,height=600');
+    if (!popup) {
+      clearTimeout(timeout);
+      window.removeEventListener('message', onMsg);
+      // Popup blocked – redirect to login
+      localStorage.removeItem('gd_token');
+      showLoginBtn('Sitzung abgelaufen – bitte neu anmelden');
+      reject(new Error('Popup blocked'));
+    }
+  });
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
@@ -563,16 +644,22 @@ async function boot() {
   const hash = new URLSearchParams(window.location.hash.substring(1));
   const hashToken = hash.get('access_token');
   const hashExpires = hash.get('expires_in');
-  const hashState = hash.get('state');
   dbg('Hash token: ' + (hashToken ? 'JA' : 'NEIN'));
 
   if (hashToken) {
     dbg('Token aus Hash erhalten');
     accessToken = hashToken;
+    const exp = (parseInt(hashExpires)||3600);
     localStorage.setItem('gd_token', accessToken);
-    localStorage.setItem('gd_token_exp', Date.now() + ((parseInt(hashExpires)||3600) - 60) * 1000);
+    localStorage.setItem('gd_token_exp', Date.now() + (exp - 60) * 1000);
     sessionStorage.removeItem('gd_state');
     window.history.replaceState({}, '', redirectUri());
+    // If this is a popup re-auth, post message to opener and close
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: 'gd_token', token: accessToken, expires: exp }, window.location.origin);
+      window.close();
+      return;
+    }
     await loadData();
     return;
   }
@@ -586,6 +673,11 @@ async function boot() {
     localStorage.setItem('gd_token', accessToken);
     localStorage.setItem('gd_token_exp', Date.now() + 3500*1000);
     window.history.replaceState({}, '', redirectUri());
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: 'gd_token', token: accessToken, expires: 3500 }, window.location.origin);
+      window.close();
+      return;
+    }
     await loadData();
     return;
   }
@@ -625,6 +717,13 @@ async function boot() {
 async function loadData() {
   setMsg('Lade Projektdaten...');
   syncUI('busy','Lade...');
+  // Save email for silent re-auth hint
+  try {
+    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',
+      {headers:{Authorization:'Bearer '+accessToken}});
+    const u = await info.json();
+    if (u.email) localStorage.setItem('gd_email', u.email);
+  } catch(e) {}
   try {
     const folderId = await findOrCreateFolder();
     fileId = await findFile(folderId);
@@ -946,6 +1045,16 @@ setTimeout(() => {
     showLoginBtn('Verbindung dauert lange – bitte anmelden');
   }
 }, 4000);
+
+// Proactively refresh token 10 min before expiry
+setInterval(async () => {
+  const exp = parseInt(localStorage.getItem('gd_token_exp') || '0');
+  if (accessToken && exp && (exp - Date.now()) < 10 * 60 * 1000) {
+    console.log('[PD] Token läuft bald ab – erneuere...');
+    try { await tryRefresh(); console.log('[PD] Token erneuert'); }
+    catch(e) { console.warn('[PD] Silent refresh fehlgeschlagen:', e.message); }
+  }
+}, 5 * 60 * 1000);  // check every 5 minutes
 
 boot();
 </script>
