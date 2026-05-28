@@ -758,7 +758,14 @@ function applyFilters() {
     const ampel = p.ampel || 'grau';
     if (statusF && ampel !== statusF) return false;
     if (leiterF && p.leiter !== leiterF) return false;
-    if (searchF && !JSON.stringify(p).toLowerCase().includes(searchF)) return false;
+    if (searchF) {
+      const words = searchF.split(/\s+/).filter(Boolean);
+      const haystack = [p.name,p.leiter,p.plFachbereich,p.sponsor,p.team,p.status,
+        p.beschreibung,p.anmerkungen,p.risiken,p.fragen,
+        (p.meilensteine||[]).map(m=>m.name).join(' ')
+      ].join(' ').toLowerCase();
+      if (!words.every(w => haystack.includes(w))) return false;
+    }
     return true;
   });
   if (currentSort.col) {
