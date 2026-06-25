@@ -213,6 +213,9 @@
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem">Alle Projekte</h2>
         <div style="display:flex;gap:.5rem;align-items:center">
           <input type="text" id="filter-search" placeholder="🔍 Suche..." oninput="applyFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;width:160px">
+          <select id="filter-bu" onchange="applyFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white">
+            <option value="">Alle Business Units</option>
+          </select>
           <select id="filter-ampel" onchange="applyFilters()" style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.83rem;background:white">
             <option value="">Alle Status</option>
             <option value="gruen">🟢 Gestartet (on track)</option>
@@ -233,6 +236,7 @@
           <th>Akt. Meilenstein</th>
           <th onclick="sortBy('leiter')">Projektleiter <span id="sort-leiter"></span></th>
           <th>PL Fachbereich</th>
+          <th onclick="sortBy('businessUnit')">Business Unit <span id="sort-businessUnit"></span></th>
           <th>Anmerkungen</th>
           <th></th>
         </tr></thead>
@@ -261,10 +265,12 @@
           </div>
           <div class="frow">
             <div class="fg"><label>Projektteam</label><input type="text" id="f-team" placeholder="z.B. BT, VR, SD"></div>
-            <div class="fg"></div>
+            <div class="fg"><label>Business Unit</label><input type="text" id="f-businessUnit" placeholder="z.B. Digital, Operations" maxlength="100"></div>
           </div>
           <div class="frow s1"><div class="fg"><label>Beschreibung & Ziele</label><textarea id="f-beschreibung"></textarea></div></div>
           <div class="frow s1"><div class="fg"><label>Erfolgsmessung</label><textarea id="f-erfolgsmessung" style="min-height:58px"></textarea></div></div>
+          <div class="frow s1"><div class="fg"><label>Management Summary</label><textarea id="f-managementSummary" style="min-height:100px" placeholder="Kurze Zusammenfassung für das Management..."></textarea></div></div>
+          <div class="frow s1"><div class="fg"><label>Key Actions</label><textarea id="f-keyActions" style="min-height:100px" placeholder="Wichtigste Maßnahmen und nächste Schritte..."></textarea></div></div>
         </div>
         <div class="fcard">
           <h3>Status & Budget</h3>
@@ -659,6 +665,14 @@ function updateStats() {
     const el = document.getElementById('sv-'+k);
     if (el) el.textContent = projects.filter(p => (p.ampel||'grau') === k).length;
   });
+  // Populate BU dropdown
+  const buSel = document.getElementById('filter-bu');
+  if (buSel) {
+    const cur = buSel.value;
+    const bus = [...new Set(projects.map(p=>p.businessUnit).filter(Boolean))].sort();
+    buSel.innerHTML = '<option value="">Alle Business Units</option>' +
+      bus.map(b=>`<option value="${b}" ${b===cur?'selected':''}>${b}</option>`).join('');
+  }
 }
 
 function filterAmpel(v) {
@@ -673,11 +687,12 @@ function filterAmpel(v) {
 function resetFilters() {
   document.getElementById('filter-search').value = '';
   document.getElementById('filter-ampel').value = '';
+  document.getElementById('filter-bu').value = '';
   sortCol = ''; sortDir = 1;
   ['gruen','gelb','rot','grau','blau','orange','total'].forEach(k => {
     const el = document.getElementById('sc-'+k); if (el) el.classList.remove('active-filter');
   });
-  ['name','ampel','fortschritt','leiter'].forEach(c => {
+  ['name','ampel','fortschritt','leiter','businessUnit'].forEach(c => {
     const el = document.getElementById('sort-'+c); if (el) el.textContent = '';
   });
   renderRows(projects);
@@ -695,8 +710,10 @@ function sortBy(col) {
 function applyFilters() {
   const sf = (document.getElementById('filter-search').value||'').toLowerCase();
   const af = document.getElementById('filter-ampel').value;
+  const bf = document.getElementById('filter-bu').value;
   let list = projects.filter(p => {
     if (af && (p.ampel||'grau') !== af) return false;
+    if (bf && (p.businessUnit||'') !== bf) return false;
     if (sf) {
       const words = sf.split(/\s+/).filter(Boolean);
       const hay = [p.name,p.leiter,p.plFachbereich,p.sponsor,p.team,p.status,
@@ -727,6 +744,7 @@ function renderRows(list) {
       <td>${curMs(p)}</td>
       <td style="font-size:.83rem">${p.leiter||'—'}</td>
       <td style="font-size:.83rem">${p.plFachbereich||'—'}</td>
+      <td style="font-size:.83rem">${p.businessUnit||'—'}</td>
       <td><div class="notetext">${p.anmerkungen||'—'}</div></td>
       <td><div class="abtns">
         <button class="bsm" onclick="editProject(${p.id})">✏️</button>
@@ -755,6 +773,7 @@ function renderCards() {
           <div><div class="ikey">Projektleiter</div><div class="ival">${p.leiter||'—'}</div></div>
           <div><div class="ikey">PL Fachbereich</div><div class="ival">${p.plFachbereich||'—'}</div></div>
           <div><div class="ikey">Sponsor</div><div class="ival">${p.sponsor||'—'}</div></div>
+          <div><div class="ikey">Business Unit</div><div class="ival">${p.businessUnit||'—'}</div></div>
           <div><div class="ikey">Team</div><div class="ival">${p.team||'—'}</div></div>
           <div><div class="ikey">Status</div><div class="ival">${p.status||'—'}</div></div>
         </div>
@@ -763,6 +782,8 @@ function renderCards() {
         ${p.beschreibung?`<div style="margin:.6rem 0"><div class="slbl">Beschreibung</div><p style="font-size:.83rem;color:var(--text-muted);line-height:1.5">${p.beschreibung.slice(0,200)}${p.beschreibung.length>200?'…':''}</p></div>`:''}
         ${msl?`<div style="margin:.6rem 0"><div class="slbl">Meilensteine</div><ul class="mslist">${msl}</ul></div>`:''}
         ${risks.length?`<div style="margin:.6rem 0"><div class="slbl">Risiken</div>${risks.map(r=>`<span class="rtag">⚠ ${r}</span>`).join('')}</div>`:''}
+        ${p.managementSummary?`<div style="margin:.6rem 0"><div class="slbl">Management Summary</div><p style="font-size:.83rem;color:var(--text-muted);line-height:1.5">${p.managementSummary.slice(0,300)}${p.managementSummary.length>300?'…':''}</p></div>`:''}
+        ${p.keyActions?`<div style="margin:.6rem 0"><div class="slbl">Key Actions</div><p style="font-size:.83rem;color:var(--text-muted);line-height:1.5">${p.keyActions.slice(0,300)}${p.keyActions.length>300?'…':''}</p></div>`:''}
         ${p.anmerkungen?`<div style="margin:.6rem 0"><div class="slbl">Anmerkungen</div><p style="font-size:.83rem;color:var(--text-muted)">${p.anmerkungen}</p></div>`:''}
       </div>
       <div class="cardf"><button class="bsm" onclick="editProject(${p.id});showTab('form')">✏️ Bearbeiten</button></div>
@@ -773,7 +794,7 @@ function renderCards() {
 // ════════════════════════════════════════════════
 // FORM
 // ════════════════════════════════════════════════
-const FIELDS = ['name','leiter','plFachbereich','sponsor','team','beschreibung','erfolgsmessung','risiken','fragen','anmerkungen'];
+const FIELDS = ['name','leiter','plFachbereich','sponsor','team','businessUnit','beschreibung','erfolgsmessung','managementSummary','keyActions','risiken','fragen','anmerkungen'];
 
 function addMs(ms) {
   ms = ms || {name:'',datum:'',verantwortlich:'',status:'open'};
